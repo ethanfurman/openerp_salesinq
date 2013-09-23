@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <!-- Add external_id to res.partner -->
+        <record id="view_partners_form_salesinq" model="ir.ui.view">
+                <field name="name">view.res.partner.form.salesinq</field>
+                <field name="model">res.partner</field>
+                <field name="inherit_id" ref="base.view_partner_form"/>
+                <field eval="18" name="priority"/>
+                <field name="arch" type="xml">
+                    <page string="History" position="after">
+                        <page string="SalesInq" attrs="{'invisible': [('is_salesinq_able','=',False)]}">
+                            <field name="is_salesinq_able" invisible="1"/>
+                            <field name="salesinq_yrsmos" nolabel="1"/>
+                        <!--
+                            <notebook colspan="4">
+                                <page string="Years and Months">
+                                    <field name="salesinq_yrsmos" nolablel="1"/>
+                                </page>
+                                <page string="... by Ship-to">
+                                    <field name="salesinq_yrsmos_shipto" nolablel="1"/>
+                                </page>
+                                <page string="... by Item">
+                                    <field name="salesinq_yrsmos_item" nolablel="1"/>
+                                </page>
+                                <page string="Years">
+                                    <field name="salesinq_yrs" nolablel="1"/>
+                                </page>
+                                <page string="... by Ship-to">
+                                    <field name="salesinq_yrs_shipto" nolablel="1"/>
+                                </page>
+                                <page string="... by Item">
+                                    <field name="salesinq_yrs_item" nolablel="1"/>
+                                </page>
+                                <page string="... by Ship-to and Item">
+                                    <field name="salesinq_yrs_shiptoitem" nolablel="1"/>
+                                </page>
+                            </notebook>
+                        -->
+                        </page>
+                     </page>
+
+                </field>
+        </record>
+
+    </data>
+</openerp>
