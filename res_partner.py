@@ -3,25 +3,27 @@ from fnx import xid
 from osv import osv, fields
 from urllib import urlopen
 
-CONFIG_ERROR = "Cannot sync products until  Settings --> Configuration --> FIS Integration --> %s  has been specified." 
 
 salesinq_links = [
         ('salesinq_yrsmos','All Years & Months',
-            "pyvotRpt?optX_op=Cust&Cust_op=%s&rptColFmt_op=allyrsmos"),
+            "pyvotRpt?optX_op=%s&%s_op=%s&rptColFmt_op=allyrsmos"),
         ('salesinq_yrsmos_shipto','All Years & Months by Ship To',
-            "pyvotRpt?Cust_op=%s&rptColFmt_op=allyrsmos&optX_op=ShipTo"),
+            "pyvotRpt?%s_op=%s&rptColFmt_op=allyrsmos&optX_op=ShipTo"),
         ('salesinq_yrsmos_item','All Years & Months by Item',
-            "pyvotRpt?Cust_op=%s&rptColFmt_op=allyrsmos&optX_op=Item"),
+            "pyvotRpt?%s_op=%s&rptColFmt_op=allyrsmos&optX_op=Item"),
         ('salesinq_yrs','All Years',
-            "pyvotRpt?optX_op=Cust&Cust_op=%s&rptColFmt_op=allyears"),
+            "pyvotRpt?optX_op=%s&%s_op=%s&rptColFmt_op=allyears"),
         ('salesinq_yrs_shipto','All Years by ShipTo',
-            "pyvotRpt?ck_descs=on&Cust_op=%s&rptColFmt_op=allyears&optX_op=ShipTo"),
+            "pyvotRpt?ck_descs=on&%s_op=%s&rptColFmt_op=allyears&optX_op=ShipTo"),
         ('salesinq_yrs_item','All Years by Item',
-            "pyvotRpt?ck_descs=on&Cust_op=%s&rptColFmt_op=allyears&optX_op=Item"),
+            "pyvotRpt?ck_descs=on&%s_op=%s&rptColFmt_op=allyears&optX_op=Item"),
         ('salesinq_yrs_shiptoitem','All Years by ShipTo & Item',
-            "pyvotRpt?ck_descs=on&Cust_op=%s&rptColFmt_op=allyears&optX_op=ShipTo&optY_op=Item"),
+            "pyvotRpt?ck_descs=on&%s_op=%s&rptColFmt_op=allyears&optX_op=ShipTo&optY_op=Item"),
         ]
 
+#########################################################
+#            pyvotRpt?optX_op=Item&Supplier_op=000140&rptColFmt_op=rollingyear
+###########################################################################################
 
 SalesInqStub = """<HTML>
 <HEAD>
@@ -144,7 +146,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             chain[partner.id] = partner.parent_id
     xml_ids = xid.get_xml_ids(
             obj, cr, uid, all_ids, None,
-            arg=('supplier_integration','FIS Supplier/Vendor', CONFIG_ERROR),
+            arg=('F33', 'F65', 'F163'),
             context=context)
     result = defaultdict(dict)
     for partner_id, parent_id in chain.items():
@@ -152,9 +154,11 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         si_codes = xml_ids[partner_id]
         si_code = si_codes['xml_id'].replace("'","%27")
         valid_si_code = is_valid(si_code)
+        partner = obj.browse(cr, uid, [partner_id], context=context)[0]
         if parent_id is not None and not valid_si_code:
             si_code = xml_ids[parent_id]
             valid_si_code = is_valid(si_code)
+            partner = obj.browse(cr, uid, [parent_id], context=context)[0]
         result[partner_id]['is_salesinq_able'] = valid_si_code
         for fld in fields:
             if not valid_si_code:
@@ -166,12 +170,20 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             for shortname, longname, SalesInqURL in salesinq_links:
                 if shortname == 'salesinq_yrs':
                     htmlContentList.append('<br>')
-                htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % si_code, longname))
+                if partner.customer:
+                    fields = 'Cust','Cust'
+                else: # .supplier:
+                    fields = 'Item', 'Supplier'
+                if SalesInqURL.count('%s') == 3:
+                    codes = fields + (si_code,)
+                else:
+                    codes = fields[1:] + (si_code,)
+                htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % codes, longname))
             #for ii in htmlContentList: print ii
             htmlContentList.append('''
                     <script type="text/javascript">
                     ajaxpage('%s','salesinqcontent');
-                    </script>''' % (salesinq_links[0][2] % si_code) )
+                    </script>''' % (salesinq_links[0][2] % (fields[0], fields[1], si_code)) )
             result[partner_id][fld] = SalesInqStub % "".join(htmlContentList)
     return result
 

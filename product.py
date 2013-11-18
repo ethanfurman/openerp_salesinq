@@ -132,21 +132,30 @@ def _LabelLinks(obj, cr, uid, ids, field_name, arg, context=None):
     xml_ids = [v for (k, v) in 
             xid.get_xml_ids(
                 obj, cr, uid, ids, field_name, 
-                arg=('product_category_integration','FIS Product Category', CONFIG_ERROR),
+                arg=('F135', ),
                 context=context).items()
             ]
-    result = {}
+    print
+    print ids
+    print xml_ids
+    print
+    result = defaultdict(dict)
     htmlContentList = [ ]
-    for id, xml_id in zip(ids, xml_ids):  # there should only be one...
+    for id, d in zip(ids, xml_ids):  # there should only be one...
+        print id, d
+        xml_id = d['xml_id']
+        print xml_id
         htmlContentList.append('''<img src="%s" width=55%% align="left"/>''' % (LabelLinks[0] % (xml_id, xml_id)))
         htmlContentList.append('''<img src="%s" width=35%% align="right"/><br>''' % (LabelLinks[1] % (xml_id, xml_id)))
         htmlContentList.append('''<br><img src="%s" width=100%% /><br>''' % (LabelLinks[2] % (xml_id, xml_id)))
+        result[id] = LabelLinkStub % "".join(htmlContentList)
+        print result
         #for ii in htmlContentList: print ii
     #htmlContentList.append('''
     #        <script type="text/javascript">
     #        ajaxpage('%s','labellinkcontent');
     #        </script>''' % (LabelLinks[0] % (xml_id,xml_id)))
-    result[id] = LabelLinkStub % "".join(htmlContentList)
+    #result[id]['label_server_stub'] = LabelLinkStub % "".join(htmlContentList)
     return result
 
 
@@ -161,20 +170,20 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         fields.remove('module')
     xml_ids = xid.get_xml_ids(
             obj, cr, uid, ids, None,
-            arg=('product_integration','FIS Product', CONFIG_ERROR),
+            arg=('F135', ),
             context=context)
     result = defaultdict(dict)
-    for partner_id in ids:
-        result[partner_id]['xml_id'] = xml_ids[partner_id]['xml_id']
-        si_codes = xml_ids[partner_id]
+    for product_id in ids:
+        result[product_id]['xml_id'] = xml_ids[product_id]['xml_id']
+        si_codes = xml_ids[product_id]
         si_code = si_codes['xml_id'].replace("'","%%27")
         valid_si_code = is_valid(si_code)
-        result[partner_id]['is_salesinq_able'] = valid_si_code
+        result[product_id]['is_salesinq_able'] = valid_si_code
         for fld in fields:
             if not valid_si_code:
-                result[partner_id][fld] = ''
+                result[product_id][fld] = ''
                 continue
-            #result[partner_id][fld] = 'fake html'   # TODO remove for live install!!
+            #result[product_id][fld] = 'fake html'   # TODO remove for live install!!
             #continue                                # this line too!
             htmlContentList = [ ]
             for shortname, longname, SalesInqURL in salesinq_links:
@@ -186,8 +195,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     <script type="text/javascript">
                     ajaxpage('%s','salesinqcontent');
                     </script>''' % (salesinq_links[0][2] % si_code) )
-            result[partner_id][fld] = SalesInqStub % "".join(htmlContentList)
-            print result[partner_id][fld]
+            result[product_id][fld] = SalesInqStub % "".join(htmlContentList)
     return result
 
 def is_valid(id):
