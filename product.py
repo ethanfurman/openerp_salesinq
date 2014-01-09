@@ -135,21 +135,14 @@ def _LabelLinks(obj, cr, uid, ids, field_name, arg, context=None):
                 arg=('F135', ),
                 context=context).items()
             ]
-    print
-    print ids
-    print xml_ids
-    print
     result = defaultdict(dict)
     htmlContentList = [ ]
     for id, d in zip(ids, xml_ids):  # there should only be one...
-        print id, d
         xml_id = d['xml_id']
-        print xml_id
         htmlContentList.append('''<img src="%s" width=55%% align="left"/>''' % (LabelLinks[0] % (xml_id, xml_id)))
         htmlContentList.append('''<img src="%s" width=35%% align="right"/><br>''' % (LabelLinks[1] % (xml_id, xml_id)))
         htmlContentList.append('''<br><img src="%s" width=100%% /><br>''' % (LabelLinks[2] % (xml_id, xml_id)))
         result[id] = LabelLinkStub % "".join(htmlContentList)
-        print result
         #for ii in htmlContentList: print ii
     #htmlContentList.append('''
     #        <script type="text/javascript">
