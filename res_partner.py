@@ -164,26 +164,23 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             if not valid_si_code:
                 result[partner_id][fld] = ''
                 continue
-            #result[partner_id][fld] = 'fake html'
-            #continue
             htmlContentList = [ ]
             for shortname, longname, SalesInqURL in salesinq_links:
                 if shortname == 'salesinq_yrs':
                     htmlContentList.append('<br>')
                 if partner.customer:
-                    fields = 'Cust','Cust'
+                    si_fields = 'Cust','Cust'
                 else: # .supplier:
-                    fields = 'Item', 'Supplier'
+                    si_fields = 'Item', 'Supplier'
                 if SalesInqURL.count('%s') == 3:
-                    codes = fields + (si_code,)
+                    codes = si_fields + (si_code,)
                 else:
-                    codes = fields[1:] + (si_code,)
+                    codes = si_fields[1:] + (si_code,)
                 htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % codes, longname))
-            #for ii in htmlContentList: print ii
             htmlContentList.append('''
                     <script type="text/javascript">
                     ajaxpage('%s','salesinqcontent');
-                    </script>''' % (salesinq_links[0][2] % (fields[0], fields[1], si_code)) )
+                    </script>''' % (salesinq_links[0][2] % (si_fields[0], si_fields[1], si_code)) )
             result[partner_id][fld] = SalesInqStub % "".join(htmlContentList)
     return result
 
