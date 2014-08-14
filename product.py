@@ -3,7 +3,7 @@ from fnx import xid, dynamic_page_stub, static_page_stub
 from osv import osv, fields
 from urllib import urlopen
 
-from _links import *
+from _links import product_links, product_modules
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     fields = fields[:]
@@ -16,7 +16,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         fields.remove('module')
     xml_ids = xid.get_xml_ids(
             obj, cr, uid, ids, None,
-            arg=('F135', ),
+            arg=product_modules,
             context=context)
     result = defaultdict(dict)
     for product_id in ids:
@@ -30,8 +30,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 result[product_id][fld] = ''
                 continue
             htmlContentList = []
-            if len(salesinq_links) > 1:
-                for shortname, longname, SalesInqURL in salesinq_links:
+            if len(product_links) > 1:
+                for shortname, longname, SalesInqURL in product_links:
                     if shortname == 'salesinq_allyears_rep':
                         htmlContentList.append('<br>')
                     htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % si_code, longname))
@@ -39,7 +39,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">
                     ajaxpage('%s','salesinqcontent');
-                    </script>''' % (salesinq_links[0][2] % si_code) )
+                    </script>''' % (product_links[0][2] % si_code) )
             result[product_id][fld] = dynamic_page_stub % "".join(htmlContentList)
     return result
 
