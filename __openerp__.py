@@ -13,10 +13,13 @@
             "fis_integration",
             "product",
             ],
+    'css': [
+            "static/src/css/salesinq.css",
+            ],
     'update_xml': [
             'res_partner_view.xml',
             'product_view.xml',
-        ],
+            ],
     'test': [],
     'installable': True,
     'active': False,

@@ -14,7 +14,7 @@
                 </field>
                 <page string="Sales" position="after">
                     <page string="SalesInq" attrs="{'invisible':[('is_salesinq_able','!=',True)]}">
-                        <field name="salesinq_data" nolabel="1"/>
+                        <field name="salesinq_data" nolabel="1" class="salesinq"/>
                     </page>
                 </page>
             </field>

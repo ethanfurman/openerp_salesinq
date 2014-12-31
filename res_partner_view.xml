@@ -12,7 +12,7 @@
                     <page string="History" position="after">
                         <page string="SalesInq" attrs="{'invisible': [('is_salesinq_able','=',False)]}">
                             <field name="is_salesinq_able" invisible="1"/>
-                            <field name="salesinq_data" nolabel="1"/>
+                            <field name="salesinq_data" nolabel="1" class="salesinq"/>
                         </page>
                      </page>
 
