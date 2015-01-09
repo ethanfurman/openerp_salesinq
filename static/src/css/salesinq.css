@@ -1,0 +1,11 @@
+@charset "utf-8";
+.salesinq table {
+  font-family: monospace;
+  text-align: justify;
+}
+.salesinq table th, .salesinq table td {
+  text-align: right
+}
+.salesinq table th:first-child, .salesinq table td:first-child {
+  text-align: left;
+}
