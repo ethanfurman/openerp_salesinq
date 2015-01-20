@@ -2,10 +2,9 @@ from collections import defaultdict
 from fnx import xid, dynamic_page_stub, static_page_stub
 from osv import osv, fields
 from urllib import urlopen
-from zlib import crc32
 
 from salesinq import get_user_reps
-from salesinq._links import product_links, product_modules
+from _links import product_links, product_modules
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     # check group permissions for user

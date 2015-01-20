@@ -4,7 +4,7 @@ from osv import osv, fields
 from urllib import urlopen
 
 from salesinq import get_user_reps
-from salesinq._links import partner_links, partner_modules
+from _links import partner_links, partner_modules
 
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
@@ -58,7 +58,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     si_fields = 'Item', 'Supplier'
                 subs = SalesInqURL.count('%s')
                 if subs == 0:
-                    if allow_external:
+                    if allow_external_si:
                         htmlContentList.append('''<a href="%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
                 else:
                     if subs == 3:

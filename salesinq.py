@@ -2,9 +2,33 @@ from collections import defaultdict
 # from fnx import xid, dynamic_page_stub, static_page_stub
 from osv import osv, fields
 from urllib import urlopen
+from zlib import crc32
 
 # from _links import product_links, product_modules
 
+def get_user_reps(obj, cr, uid, context=None):
+    user = obj.pool.get('res.users').browse(cr, uid, uid)
+    allow_external_si = user.has_group('salesinq.user')
+    si_rep_text = ''
+    print user.name, 'is', ('not allowed', 'allowed')[allow_external_si]
+    if allow_external_si:
+        si_webpage = obj.pool.get('salesinq.webpage')
+        webpage_rec = si_webpage.browse(cr, uid, [('user_id','=',uid)])
+        if not webpage_rec:
+            allow_external_si = False
+            print 'no webpage record, cancelling'
+        else:
+            [webpage_rec] = webpage_rec
+            reps = []
+            for rep in webpage_rec.rep_ids:
+                reps.append(rep.code)
+            si_rep_text = str(reps)
+            crc = '%08X' % (crc32(str(si_rep_text)) & 0xffffffff,)
+            xlate = dict(zip("0123456789ABCDEF","ABCDEFGHIJKLMNOP"))
+            crc = ''.join([xlate[c] for c in crc[-3:]])
+            reps.append(crc)
+            si_rep_text = '[' + ','.join(reps) + ']'
+    return allow_external_si, si_rep_text
 
 class salesinq_webpage(osv.Model):
     'stores the web page from the SalesInq engine'

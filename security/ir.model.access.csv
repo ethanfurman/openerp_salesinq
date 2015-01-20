@@ -1,5 +1,5 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
 "access_salesinq_webpage_user","salesinq.webpage","model_salesinq_webpage","user",1,0,0,0
 "access_salesinq_webpage_admin","salesinq.webpage","model_salesinq_webpage","admin",1,1,1,1
-"access_salesinq_rep_user","salesinq.rep","model_salesinq_rep","user",0,0,0,0
+"access_salesinq_rep_user","salesinq.rep","model_salesinq_rep","user",1,0,0,0
 "access_salesinq_rep_admin","salesinq.rep","model_salesinq_rep","admin",1,1,1,1
