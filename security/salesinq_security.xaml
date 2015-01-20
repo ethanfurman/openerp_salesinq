@@ -19,3 +19,15 @@
             @implied_ids eval="[(4, ref('user'))]"
             @users eval="[(4, ref('base.user_root'))]"
 
+        %record model='ir.cron' #salesinq_update
+            @name:SalesInq Update
+            @active eval='True'
+            @interval_number: 1
+            @interval_type: day
+            @numbercall: -1
+            @doall eval='False'
+            @model: salesinq.web
+            @function: query_salesinq
+            @args: ()
+            @nextcall: 2015-01-15 00:03:00
+            @priority: 100 

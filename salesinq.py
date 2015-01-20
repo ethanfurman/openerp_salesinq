@@ -37,7 +37,22 @@ class salesinq_webpage(osv.Model):
     # _mirrors = {'user_id': ['name']
 
     def query_salesinq(cr, uid, *args):
-        pass
+        si = urlopen('http://openerp.sunridgefarms.com/SalesInq')
+        si_page = si.read()
+        start = si_page.index('<select id="Rep_op"')
+        end = si_page.index('</select>', start)
+        section = si_page[start:end]
+        reps = []
+        for line in section.split('\n'):
+            match = re.search('value="([^"]*)"', line)
+            if match and match.groups()[0] not in (' All ', ''):
+                reps.append(match.groups()[0])
+        si_reps = self.pool.get('salesinq.rep')
+        existing_reps = [rep.code for rep in si_reps.browse(cr, uid)]
+        for rep in reps:
+            if rep not in existing_reps:
+                si_reps.create(cr, uid, {'code':rep})
+        return True
 
     def _convert_page(self, cr, uid, ids, field_name, arg, context=None):
         pass
