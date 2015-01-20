@@ -1,9 +1,10 @@
 {
    'name': 'SalesInq Interface',
-    'version': '0.3',
+    'version': '0.4',
     'category': 'Generic Modules',
     'description': """\
             Adds SalesInq tab for products and partners.
+            Adds link to external, restricted, SalesInq web page.
             """,
     'author': 'Emile van Sebille',
     'maintainer': 'Emile van Sebille',
@@ -19,6 +20,9 @@
     'update_xml': [
             'res_partner_view.xml',
             'product_view.xml',
+            'security/salesinq_security.xaml',
+            'security/ir.model.access.csv',
+            'salesinq_view.xaml',
             ],
     'test': [],
     'installable': True,

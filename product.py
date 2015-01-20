@@ -2,10 +2,14 @@ from collections import defaultdict
 from fnx import xid, dynamic_page_stub, static_page_stub
 from osv import osv, fields
 from urllib import urlopen
+from zlib import crc32
 
-from _links import product_links, product_modules
+from salesinq import get_user_reps
+from salesinq._links import product_links, product_modules
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
+    # check group permissions for user
+    allow_external_si, si_rep_text = get_user_reps(obj, cr, uid, context)
     fields = fields[:]
     # remove known fields
     if 'xml_id' in fields:
@@ -32,6 +36,10 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             htmlContentList = []
             if len(product_links) > 1:
                 for shortname, longname, SalesInqURL in product_links:
+                    if SalesInqURL.count('%s') == 0:
+                        if allow_external_si:
+                            htmlContentList.append('''<a href="%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
+                        continue
                     if shortname == 'salesinq_allyears_rep':
                         htmlContentList.append('<br>')
                     htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % si_code, longname))

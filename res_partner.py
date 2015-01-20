@@ -3,10 +3,13 @@ from fnx import xid, dynamic_page_stub
 from osv import osv, fields
 from urllib import urlopen
 
-from _links import partner_links, partner_modules
+from salesinq import get_user_reps
+from salesinq._links import partner_links, partner_modules
 
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
+    # check group permissions for user
+    allow_external_si, si_rep_text = get_user_reps(obj, cr, uid, context)
     fields = fields[:]
     # remove known fields
     if 'xml_id' in fields:
@@ -55,7 +58,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     si_fields = 'Item', 'Supplier'
                 subs = SalesInqURL.count('%s')
                 if subs == 0:
-                    htmlContentList.append('''<a href="%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, longname))
+                    if allow_external:
+                        htmlContentList.append('''<a href="%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
                 else:
                     if subs == 3:
                         codes = si_fields + (si_code,)
