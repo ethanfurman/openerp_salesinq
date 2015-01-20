@@ -53,11 +53,15 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     si_fields = 'Cust','Cust'
                 else: # .supplier:
                     si_fields = 'Item', 'Supplier'
-                if SalesInqURL.count('%s') == 3:
-                    codes = si_fields + (si_code,)
+                subs = SalesInqURL.count('%s')
+                if subs == 0:
+                    htmlContentList.append('''<a href="%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, longname))
                 else:
-                    codes = si_fields[1:] + (si_code,)
-                htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % codes, longname))
+                    if subs == 3:
+                        codes = si_fields + (si_code,)
+                    else:
+                        codes = si_fields[1:] + (si_code,)
+                    htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % codes, longname))
             htmlContentList.append('''
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">
