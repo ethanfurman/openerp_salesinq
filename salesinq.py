@@ -1,10 +1,18 @@
 from collections import defaultdict
 # from fnx import xid, dynamic_page_stub, static_page_stub
 from osv import osv, fields
-from urllib import urlopen
+from scription import OrmFile
+from urllib2 import HTTPPasswordMgr, HTTPBasicAuthHandler, build_opener
 from zlib import crc32
+import re
 
-# from _links import product_links, product_modules
+salesinq = 'http://openerp.sunridgefarms.com/SalesInq'
+settings = OrmFile('/etc/openerp/fnx.ini', section='openerp')
+auth_handler = HTTPBasicAuthHandler()
+auth_handler.add_password(realm='Zope', user=settings.user, passwd=settings.pw, uri=salesinq)
+webpage = build_opener(auth_handler)
+del settings
+del auth_handler
 
 def get_user_reps(obj, cr, uid, context=None):
     user = obj.pool.get('res.users').browse(cr, uid, uid)
@@ -36,19 +44,24 @@ class salesinq_webpage(osv.Model):
     _rec_name = 'id'
     # _mirrors = {'user_id': ['name']
 
-    def query_salesinq(cr, uid, *args):
-        si = urlopen('http://openerp.sunridgefarms.com/SalesInq')
+    def query_salesinq(self, cr, uid, *args):
+        si = webpage.open(salesinq)
         si_page = si.read()
         start = si_page.index('<select id="Rep_op"')
         end = si_page.index('</select>', start)
         section = si_page[start:end]
+        print section
         reps = []
         for line in section.split('\n'):
+            print line
             match = re.search('value="([^"]*)"', line)
             if match and match.groups()[0] not in (' All ', ''):
                 reps.append(match.groups()[0])
+                print match.groups()[0]
         si_reps = self.pool.get('salesinq.rep')
         existing_reps = [rep.code for rep in si_reps.browse(cr, uid)]
+        print existing_reps
+        print reps
         for rep in reps:
             if rep not in existing_reps:
                 si_reps.create(cr, uid, {'code':rep})
