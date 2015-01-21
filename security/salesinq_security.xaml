@@ -23,7 +23,7 @@
             @name:SalesInq Update
             @active eval='True'
             @interval_number: 1
-            @interval_type: day
+            @interval_type: days
             @numbercall: -1
             @doall eval='False'
             @model: salesinq.web
