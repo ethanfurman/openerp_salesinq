@@ -18,19 +18,17 @@ def get_user_reps(obj, cr, uid, context=None):
     user = obj.pool.get('res.users').browse(cr, uid, uid)
     allow_external_si = user.has_group('salesinq.user')
     si_rep_text = ''
-    print user.name, 'is', ('not allowed', 'allowed')[allow_external_si]
     if allow_external_si:
         si_webpage = obj.pool.get('salesinq.webpage')
         webpage_rec = si_webpage.browse(cr, uid, [('user_id','=',uid)])
         if not webpage_rec:
             allow_external_si = False
-            print 'no webpage record, cancelling'
         else:
             [webpage_rec] = webpage_rec
             reps = []
             for rep in webpage_rec.rep_ids:
                 reps.append(rep.code)
-            si_rep_text = str(reps)
+            si_rep_text = ','.join(reps)
             crc = '%08X' % (crc32(str(si_rep_text)) & 0xffffffff,)
             xlate = dict(zip("0123456789ABCDEF","ABCDEFGHIJKLMNOP"))
             crc = ''.join([xlate[c] for c in crc[-3:]])
@@ -50,18 +48,13 @@ class salesinq_webpage(osv.Model):
         start = si_page.index('<select id="Rep_op"')
         end = si_page.index('</select>', start)
         section = si_page[start:end]
-        print section
         reps = []
         for line in section.split('\n'):
-            print line
             match = re.search('value="([^"]*)"', line)
             if match and match.groups()[0] not in (' All ', ''):
                 reps.append(match.groups()[0])
-                print match.groups()[0]
         si_reps = self.pool.get('salesinq.rep')
         existing_reps = [rep.code for rep in si_reps.browse(cr, uid)]
-        print existing_reps
-        print reps
         for rep in reps:
             if rep not in existing_reps:
                 si_reps.create(cr, uid, {'code':rep})
