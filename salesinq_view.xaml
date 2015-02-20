@@ -1,22 +1,12 @@
 !!! coding: utf-8
 !!! xml1.0
-:python
-    view = 'ir.ui.view'
-    webpage_action = 'ir.actions.act_webpage'
-    action = 'ir.actions.act_window'
-    si_model = 'salesinq.webpage'
-    user = 'salesinq.user'
-    admin = 'salesinq.admin'
-        # %record model='ir.ui.menu' #launcher
-        #     @type: ir.actions.webpage
-        # %menuitem @SalesInq #salesinq_submenu groups=user parent='base.menu_base_partner'
-        # 
-        # %record model=webpage_action #salesinq_launch
-        #     @name: Launch SalesInq
-        #     @res_model: = si_model
-        #     @res_field: web_page
-        # 
-        # %menuitem @Launch #launcher parent='salesinq_submenu' action='salesinq_launch'
+
+-view = 'ir.ui.view'
+-webpage_action = 'ir.actions.act_webpage'
+-action = 'ir.actions.act_window'
+-si_model = 'salesinq.webpage'
+-user = 'salesinq.user'
+-admin = 'salesinq.admin'
 
 %openerp
     %data
