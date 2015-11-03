@@ -36,12 +36,12 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     for partner_id, parent_id in chain.items():
         result[partner_id]['xml_id'] = xml_ids[partner_id]['xml_id']
         si_codes = xml_ids[partner_id]
-        si_code = si_codes['xml_id'].replace("'","%27")
+        si_code = (si_codes['xml_id'] or '').replace("'","%27")
         valid_si_code = is_valid(si_code)
         partner = obj.browse(cr, uid, [partner_id], context=context)[0]
         if parent_id is not None and not valid_si_code:
             si_codes = xml_ids[parent_id]
-            si_code = si_codes['xml_id'].replace("'","%27")
+            si_code = (si_codes['xml_id'] or '').replace("'","%27")
             valid_si_code = is_valid(si_code)
             partner = obj.browse(cr, uid, [parent_id.id], context=context)[0]
         result[partner_id]['is_salesinq_able'] = valid_si_code

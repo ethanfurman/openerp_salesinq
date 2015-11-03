@@ -25,7 +25,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     for product_id in ids:
         result[product_id]['xml_id'] = xml_ids[product_id]['xml_id']
         si_codes = xml_ids[product_id]
-        si_code = si_codes['xml_id'].replace("'","%%27")
+        si_code = (si_codes['xml_id'] or '').replace("'","%%27")
         valid_si_code = is_valid(si_code)
         result[product_id]['is_salesinq_able'] = valid_si_code
         for fld in fields:
