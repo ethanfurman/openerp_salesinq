@@ -19,7 +19,7 @@ class ir_model_data(osv.Model):
             raise ValueError('No external ID currently defined in the system for: %s.%s' % (model, res_id))
         # the sql constraints ensure us we have only one result
         return ids[0]
-        
+
     @tools.ormcache()
     def _get_model_records(self, cr, uid, model):
         """
@@ -31,7 +31,7 @@ class ir_model_data(osv.Model):
         if not ids:
             return []
         return self.browse(cr, uid, ids)
-        
+
     @tools.ormcache()
     def get_object_reference_from_model_resid(self, cr, uid, model, res_id):
         """

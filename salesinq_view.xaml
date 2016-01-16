@@ -8,24 +8,24 @@
 -user = 'salesinq.user'
 -admin = 'salesinq.admin'
 
-%openerp
-    %data
+~openerp
+    ~data
 
-        %record model=view #admin_pane
+        ~record model=view #admin_pane
             @name: Salesinq
             @model: = si_model
             @arch type='xml'
-                %form $SalesInq version='7.0'
-                    %group
+                ~form $SalesInq version='7.0'
+                    ~group
                         @user_id
                         @rep_ids
 
-        %record model=action #action_admin_pane
+        ~record model=action #action_admin_pane
             @name: SalesInq Configuration
             @res_model: = si_model
             @view_type: form
             @view_id ref='admin_pane'
             @view_mode: form,tree
 
-        %menuitem @SalesInq #config groups=admin parent='base.menu_base_config' action='action_admin_pane'
+        ~menuitem @SalesInq #config groups=admin parent='base.menu_base_config' action='action_admin_pane'
 

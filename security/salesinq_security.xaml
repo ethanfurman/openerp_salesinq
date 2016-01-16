@@ -1,25 +1,25 @@
 !!! xml1.0
-%openerp
-    %data noupdate='1'
+~openerp
+    ~data noupdate='1'
 
-        %record model='ir.module.category' #salesinq
+        ~record model='ir.module.category' #salesinq
             @name: SalesInq
             @sequence: 42
             @description: Sales Inquiry Tool interface
 
-        %record model='res.groups' #user
+        ~record model='res.groups' #user
             @name: User
             @category_id ref='salesinq'
             @comment: The user has access to the SalesInq tool
 
-        %record model='res.groups' #admin
+        ~record model='res.groups' #admin
             @name: Manager
             @category_id ref='salesinq'
             @comment: The user can set access to data for Users
             @implied_ids eval="[(4, ref('user'))]"
             @users eval="[(4, ref('base.user_root'))]"
 
-        %record model='ir.cron' #salesinq_update
+        ~record model='ir.cron' #salesinq_update
             @name:SalesInq Update
             @active eval='True'
             @interval_number: 1
