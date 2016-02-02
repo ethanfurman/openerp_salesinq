@@ -1,5 +1,4 @@
 from collections import defaultdict
-# from fnx import xid, dynamic_page_stub, static_page_stub
 from osv import osv, fields
 from scription import OrmFile
 from urllib2 import HTTPPasswordMgr, HTTPBasicAuthHandler, build_opener

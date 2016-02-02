@@ -1,5 +1,5 @@
 from collections import defaultdict
-from fnx import xid, dynamic_page_stub
+from fnx.openerp import xid, dynamic_page_stub
 from osv import osv, fields
 from urllib import urlopen
 
