@@ -1,5 +1,6 @@
 from collections import defaultdict
-from fnx.oe import xid, dynamic_page_stub, static_page_stub
+from fnx import xid
+from fnx.oe import dynamic_page_stub, static_page_stub
 from osv import osv, fields
 from urllib import urlopen
 
