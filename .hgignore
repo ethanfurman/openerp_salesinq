@@ -4,3 +4,4 @@ syntax: glob
 *~
 .*~
 _links.py
+*.xml
