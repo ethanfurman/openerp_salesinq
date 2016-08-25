@@ -2,7 +2,6 @@ from collections import defaultdict
 from fnx import xid
 from fnx.oe import dynamic_page_stub
 from osv import osv, fields
-from urllib import urlopen
 
 from salesinq import get_user_reps
 from _links import partner_links, partner_modules
@@ -34,6 +33,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             arg=partner_modules,
             context=context)
     result = defaultdict(dict)
+    dbname = cr.dbname
     for partner_id, parent_id in chain.items():
         result[partner_id]['xml_id'] = xml_ids[partner_id]['xml_id']
         si_codes = xml_ids[partner_id]
@@ -61,18 +61,18 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 subs = SalesInqURL.count('%s')
                 if subs == 0:
                     if allow_external_si:
-                        htmlContentList.append('''<a href="%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
+                        htmlContentList.append('''<a href="salesinq/%s/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (dbname, SalesInqURL, si_rep_text, longname))
                 else:
                     if subs == 3:
                         codes = si_fields + (si_code,)
                     else:
                         codes = si_fields[1:] + (si_code,)
-                    htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % codes, longname))
+                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (dbname, SalesInqURL % codes, longname))
             htmlContentList.append('''
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">
-                    ajaxpage('%s','salesinqcontent');
-                    </script>''' % (partner_links[0][2] % (si_fields[0], si_fields[1], si_code)) )
+                    ajaxpage('salesinq/%s/%s','salesinqcontent');
+                    </script>''' % (dbname, partner_links[0][2] % (si_fields[0], si_fields[1], si_code)) )
             result[partner_id][fld] = dynamic_page_stub % "".join(htmlContentList)
     return result
 

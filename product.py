@@ -1,8 +1,7 @@
 from collections import defaultdict
 from fnx import xid
-from fnx.oe import dynamic_page_stub, static_page_stub
+from fnx.oe import dynamic_page_stub
 from osv import osv, fields
-from urllib import urlopen
 
 from salesinq import get_user_reps
 from _links import product_links, product_modules
@@ -38,11 +37,11 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 for shortname, longname, SalesInqURL in product_links:
                     if SalesInqURL.count('%s') == 0:
                         if allow_external_si:
-                            htmlContentList.append('''<a href="%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
+                            htmlContentList.append('''<a href="salesinq/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
                         continue
                     if shortname == 'salesinq_allyears_rep':
                         htmlContentList.append('<br>')
-                    htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % si_code, longname))
+                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % si_code, longname))
             htmlContentList.append('''
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">

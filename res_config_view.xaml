@@ -1,0 +1,32 @@
+!!!xml1.0
+~openerp
+    ~data
+
+        ~record #view_salesinq_config_settings model='ir.ui.view'
+            @name: fis integration settings
+            @model: salesinq.config.settings
+            @arch type='xml'
+                ~form $Configure_SalesInq_Url version='7.0' .oe_form_configuration
+                    ~header
+                        ~button $Apply type='object' @execute .oe_highlight
+                        or
+                        ~button $Cancel type='object' @cancel .oe_link
+                    ~group groups='base.group_multi_company'
+                        ~div
+                            ~label for='company_id' $Select_Company
+                            @company_id widget='selection' on_change='onchange_company_id(company_id, context)' .oe_inline
+                    ~separator $SalesInq_Configuration
+                    ~group col='4'
+                        ~div
+                            ~div
+                                ~label for='salesinq_url'
+                                @salesinq_url
+
+        ~record #action_salesinq_config model='ir.actions.act_window'
+            @name: Configure SalesInq Url
+            @type: ir.actions.act_window
+            @res_model: salesinq.config.settings
+            @view_mode: form
+            @target: inline
+
+        ~menuitem #menu_salesinq_config name='SalesInq' parent='base.menu_config' sequence='29' action='action_salesinq_config'
