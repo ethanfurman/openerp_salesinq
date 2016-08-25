@@ -61,13 +61,17 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 subs = SalesInqURL.count('%s')
                 if subs == 0:
                     if allow_external_si:
-                        htmlContentList.append('''<a href="salesinq/%s/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (dbname, SalesInqURL, si_rep_text, longname))
+                        htmlContentList.append('''<a href="salesinq/%s/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
+                                % (dbname, SalesInqURL, si_rep_text, longname)
+                                )
                 else:
                     if subs == 3:
                         codes = si_fields + (si_code,)
                     else:
                         codes = si_fields[1:] + (si_code,)
-                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (dbname, SalesInqURL % codes, longname))
+                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                            % (dbname, SalesInqURL % codes, longname)
+                            )
             htmlContentList.append('''
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">

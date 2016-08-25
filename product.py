@@ -22,6 +22,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             arg=product_modules,
             context=context)
     result = defaultdict(dict)
+    dbname = cr.dbname
     for product_id in ids:
         result[product_id]['xml_id'] = xml_ids[product_id]['xml_id']
         si_codes = xml_ids[product_id]
@@ -37,16 +38,20 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 for shortname, longname, SalesInqURL in product_links:
                     if SalesInqURL.count('%s') == 0:
                         if allow_external_si:
-                            htmlContentList.append('''<a href="salesinq/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL, si_rep_text, longname))
+                            htmlContentList.append('''<a href="salesinq/%s/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
+                                    % (dbname, SalesInqURL, si_rep_text, longname)
+                                    )
                         continue
                     if shortname == 'salesinq_allyears_rep':
                         htmlContentList.append('<br>')
-                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>''' % (SalesInqURL % si_code, longname))
+                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                            % (dbname, SalesInqURL % si_code, longname)
+                            )
             htmlContentList.append('''
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">
-                    ajaxpage('%s','salesinqcontent');
-                    </script>''' % (product_links[0][2] % si_code) )
+                    ajaxpage('salesinq/%s/%s','salesinqcontent');
+                    </script>''' % (dbname, product_links[0][2] % si_code) )
             result[product_id][fld] = dynamic_page_stub % "".join(htmlContentList)
     return result
 
