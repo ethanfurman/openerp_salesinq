@@ -18,8 +18,9 @@
             "static/src/css/salesinq.css",
             ],
     'update_xml': [
-            'res_partner_view.xml',
-            'product_view.xml',
+            'res_config_view.xaml',
+            'res_partner_view.xaml',
+            'product_view.xaml',
             'security/salesinq_security.xaml',
             'security/ir.model.access.csv',
             'salesinq_view.xaml',

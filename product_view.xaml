@@ -1,0 +1,16 @@
+!!! xml 1.0
+~openerp
+    ~data
+
+        // Add salesinq tab and external_id to product.product
+        ~record model='ir.ui.view' #product_normal_form_view_xml_id
+            @name: view.product.product.form.xml_id
+            @model: product.product
+            @inherit_id ref='product.product_normal_form_view'
+            @priority eval='7'
+            @arch type='xml'
+                @default_code position='after'
+                    @is_salesinq_able invisible='1'
+                ~page $Sales position='after'
+                    ~page $SalesInq attrs="{'invisible':[('is_salesinq_able','!=',True)]}"
+                        @salesinq_data nolabel='1' .salesinq
