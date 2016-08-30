@@ -3,12 +3,12 @@ from fnx import xid
 from fnx.oe import dynamic_page_stub
 from osv import osv, fields
 
-from salesinq import get_user_reps
+from salesinq import allow_custom_access
 from _links import product_links, product_modules
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     # check group permissions for user
-    allow_external_si, si_rep_text = get_user_reps(obj, cr, uid, context)
+    custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
     # remove known fields
     if 'xml_id' in fields:
@@ -22,7 +22,6 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             arg=product_modules,
             context=context)
     result = defaultdict(dict)
-    dbname = cr.dbname
     for product_id in ids:
         result[product_id]['xml_id'] = xml_ids[product_id]['xml_id']
         si_codes = xml_ids[product_id]
@@ -37,21 +36,21 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             if len(product_links) > 1:
                 for shortname, longname, SalesInqURL in product_links:
                     if SalesInqURL.count('%s') == 0:
-                        if allow_external_si:
-                            htmlContentList.append('''<a href="salesinq/%s/%s?rep_op=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
-                                    % (dbname, SalesInqURL, si_rep_text, longname)
+                        if custom_access:
+                            htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
+                                    % (SalesInqURL, cr.dbname, uid, longname)
                                     )
                         continue
                     if shortname == 'salesinq_allyears_rep':
                         htmlContentList.append('<br>')
-                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s/%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
-                            % (dbname, SalesInqURL % si_code, longname)
+                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                            % (SalesInqURL % si_code, cr.dbname, uid, longname)
                             )
             htmlContentList.append('''
                     <div id="salesinqcontent"></div>
                     <script type="text/javascript">
-                    ajaxpage('salesinq/%s/%s','salesinqcontent');
-                    </script>''' % (dbname, product_links[0][2] % si_code) )
+                    ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
+                    </script>''' % (product_links[0][2] % si_code, cr.dbname, uid) )
             result[product_id][fld] = dynamic_page_stub % "".join(htmlContentList)
     return result
 

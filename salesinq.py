@@ -1,8 +1,6 @@
-from collections import defaultdict
 from osv import osv, fields
 from scription import OrmFile
-from urllib2 import HTTPPasswordMgr, HTTPBasicAuthHandler, build_opener
-from zlib import crc32
+from urllib2 import HTTPBasicAuthHandler, build_opener
 import re
 
 salesinq = 'http://openerp.sunridgefarms.com/SalesInq'
@@ -13,27 +11,9 @@ webpage = build_opener(auth_handler)
 del settings
 del auth_handler
 
-def get_user_reps(obj, cr, uid, context=None):
+def allow_custom_access(obj, cr, uid, context=None):
     user = obj.pool.get('res.users').browse(cr, uid, uid)
-    allow_external_si = user.has_group('salesinq.user')
-    si_rep_text = ''
-    if allow_external_si:
-        si_webpage = obj.pool.get('salesinq.webpage')
-        webpage_rec = si_webpage.browse(cr, uid, [('user_id','=',uid)])
-        if not webpage_rec:
-            allow_external_si = False
-        else:
-            [webpage_rec] = webpage_rec
-            reps = []
-            for rep in webpage_rec.rep_ids:
-                reps.append(rep.code)
-            si_rep_text = ','.join(reps)
-            crc = '%08X' % (crc32(str(si_rep_text)) & 0xffffffff,)
-            xlate = dict(zip("0123456789ABCDEF","ABCDEFGHIJKLMNOP"))
-            crc = ''.join([xlate[c] for c in crc[-3:]])
-            reps.append(crc)
-            si_rep_text = '[' + ','.join(reps) + ']'
-    return allow_external_si, si_rep_text
+    return user.has_group('salesinq.user')
 
 class salesinq_webpage(osv.Model):
     'stores the web page from the SalesInq engine'
