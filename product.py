@@ -1,57 +1,42 @@
 from collections import defaultdict
-from fnx import xid
 from fnx.oe import dynamic_page_stub
 from osv import osv, fields
 
 from salesinq import allow_custom_access
-from _links import product_links, product_modules
+from _links import product_links
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     # check group permissions for user
     custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
-    # remove known fields
-    if 'xml_id' in fields:
-        fields.remove('xml_id')
-    if 'is_salesinq_able' in fields:
-        fields.remove('is_salesinq_able')
-    if 'module' in fields:
-        fields.remove('module')
-    xml_ids = xid.get_xml_ids(
-            obj, cr, uid, ids, None,
-            arg=product_modules,
-            context=context)
     result = defaultdict(dict)
-    for product_id in ids:
-        result[product_id]['xml_id'] = xml_ids[product_id]['xml_id']
-        si_codes = xml_ids[product_id]
-        si_code = (si_codes['xml_id'] or '').replace("'","%%27")
+    for product in obj.read(cr, uid, ids, fields=['xml_id'], context=context):
+        si_code = (product['xml_id'] or '').replace("'","%%27")
         valid_si_code = is_valid(si_code)
-        result[product_id]['is_salesinq_able'] = valid_si_code
-        for fld in fields:
-            if not valid_si_code:
-                result[product_id][fld] = ''
-                continue
-            htmlContentList = []
-            if len(product_links) > 1:
-                for shortname, longname, SalesInqURL in product_links:
-                    if SalesInqURL.count('%s') == 0:
-                        if custom_access:
-                            htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
-                                    % (SalesInqURL, cr.dbname, uid, longname)
-                                    )
-                        continue
-                    if shortname == 'salesinq_allyears_rep':
-                        htmlContentList.append('<br>')
-                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
-                            % (SalesInqURL % si_code, cr.dbname, uid, longname)
-                            )
-            htmlContentList.append('''
-                    <div id="salesinqcontent"></div>
-                    <script type="text/javascript">
-                    ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
-                    </script>''' % (product_links[0][2] % si_code, cr.dbname, uid) )
-            result[product_id][fld] = dynamic_page_stub % "".join(htmlContentList)
+        result[product['id']]['is_salesinq_able'] = valid_si_code
+        if not valid_si_code:
+            result[product['id']]['salesinq_data'] = ''
+            continue
+        htmlContentList = []
+        if len(product_links) > 1:
+            for shortname, longname, SalesInqURL in product_links:
+                if SalesInqURL.count('%s') == 0:
+                    if custom_access:
+                        htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
+                                % (SalesInqURL, cr.dbname, uid, longname)
+                                )
+                    continue
+                if shortname == 'salesinq_allyears_rep':
+                    htmlContentList.append('<br>')
+                htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                        % (SalesInqURL % si_code, cr.dbname, uid, longname)
+                        )
+        htmlContentList.append('''
+                <div id="salesinqcontent"></div>
+                <script type="text/javascript">
+                ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
+                </script>''' % (product_links[0][2] % si_code, cr.dbname, uid) )
+        result[product['id']]['salesinq_data'] = dynamic_page_stub % "".join(htmlContentList)
     return result
 
 def is_valid(id):

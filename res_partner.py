@@ -1,82 +1,63 @@
 from collections import defaultdict
-from fnx import xid
 from fnx.oe import dynamic_page_stub
 from osv import osv, fields
 
 from salesinq import allow_custom_access
-from _links import partner_links, partner_modules
+from _links import partner_links
 
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     # check group permissions for user
     custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
-    # remove known fields
-    if 'xml_id' in fields:
-        fields.remove('xml_id')
-    if 'is_salesinq_able' in fields:
-        fields.remove('is_salesinq_able')
-    if 'module' in fields:
-        fields.remove('module')
-    # both partner and partner.parent ids
-    all_ids = []
     # partner_id is the key, value is partner.parent_id or None
     chain = {}
-    for partner in obj.browse(cr, uid, ids, context=context):
-        all_ids.append(partner.id)
-        chain[partner.id] = None
+    partners = dict([(r.id, r) for r in obj.browse(cr, uid, ids, context=context)])
+    for partner_id, partner in partners.items():
+        chain[partner_id] = None
         if partner.parent_id:
-            all_ids.append(partner.parent_id)
-            chain[partner.id] = partner.parent_id
-    xml_ids = xid.get_xml_ids(
-            obj, cr, uid, all_ids, None,
-            arg=partner_modules,
-            context=context)
+            chain[partner_id] = partner.parent_id
     result = defaultdict(dict)
     for partner_id, parent_id in chain.items():
-        result[partner_id]['xml_id'] = xml_ids[partner_id]['xml_id']
-        si_codes = xml_ids[partner_id]
-        si_code = (si_codes['xml_id'] or '').replace("'","%27")
+        partner = partners[partner_id]
+        si_code = (partner.xml_id or '').replace("'","%27")
         valid_si_code = is_valid(si_code)
-        partner = obj.browse(cr, uid, [partner_id], context=context)[0]
         if parent_id is not None and not valid_si_code:
-            si_codes = xml_ids[parent_id]
-            si_code = (si_codes['xml_id'] or '').replace("'","%27")
+            partner = partners[partner_id]
+            si_code = (partner.xml_id or '').replace("'","%27")
             valid_si_code = is_valid(si_code)
-            partner = obj.browse(cr, uid, [parent_id.id], context=context)[0]
         result[partner_id]['is_salesinq_able'] = valid_si_code
-        for fld in fields:
-            if not valid_si_code:
-                result[partner_id][fld] = ''
-                continue
-            htmlContentList = [ ]
-            for shortname, longname, SalesInqURL in partner_links:
-                if shortname == 'salesinq_yrs':
-                    htmlContentList.append('<br>')
-                if partner.customer:
-                    si_fields = 'Cust','Cust'
-                else: # .supplier:
-                    si_fields = 'Item', 'Supplier'
-                subs = SalesInqURL.count('%s')
-                if subs == 0:
-                    if custom_access:
-                        htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
-                                % (SalesInqURL, cr.dbname, uid, longname)
-                                )
-                else:
-                    if subs == 3:
-                        codes = si_fields + (si_code,)
-                    else:
-                        codes = si_fields[1:] + (si_code,)
-                    htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
-                            % (SalesInqURL % codes, cr.dbname, uid, longname)
+        if not valid_si_code:
+            result[partner_id]['salesinq_data'] = ''
+            continue
+        htmlContentList = []
+        for shortname, longname, SalesInqURL in partner_links:
+            if shortname == 'salesinq_yrs':
+                htmlContentList.append('<br>')
+            if partner.customer:
+                si_fields = 'Cust','Cust'
+            else: # .supplier:
+                si_fields = 'Item', 'Supplier'
+            subs = SalesInqURL.count('%s')
+            if subs == 0:
+                if custom_access:
+                    htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
+                            % (SalesInqURL, cr.dbname, uid, longname)
                             )
-            htmlContentList.append('''
-                    <div id="salesinqcontent"></div>
-                    <script type="text/javascript">
-                    ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
-                    </script>''' % (partner_links[0][2] % (si_fields[0], si_fields[1], si_code), cr.dbname, uid) )
-            result[partner_id][fld] = dynamic_page_stub % "".join(htmlContentList)
+            else:
+                if subs == 3:
+                    codes = si_fields + (si_code,)
+                else:
+                    codes = si_fields[1:] + (si_code,)
+                htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                        % (SalesInqURL % codes, cr.dbname, uid, longname)
+                        )
+        htmlContentList.append('''
+                <div id="salesinqcontent"></div>
+                <script type="text/javascript">
+                ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
+                </script>''' % (partner_links[0][2] % (si_fields[0], si_fields[1], si_code), cr.dbname, uid) )
+        result[partner_id]['salesinq_data'] = dynamic_page_stub % "".join(htmlContentList)
     return result
 
 def is_valid(id):
