@@ -12,7 +12,7 @@ del settings
 del auth_handler
 
 def allow_custom_access(obj, cr, uid, context=None):
-    user = obj.pool.get('res.users').browse(cr, uid, uid)
+    user = obj.pool.get('res.users').browse(cr, uid, uid, context=context)
     return user.has_group('salesinq.user')
 
 class salesinq_webpage(osv.Model):
