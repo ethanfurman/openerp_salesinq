@@ -30,6 +30,8 @@ class SalesInqProxy(http.Controller):
             base_url = registry.get('res.users').browse(cr, SUPERUSER_ID, uid).company_id.salesinq_url
         web_data = requests.get('http://%s/pyvotRpt' % base_url, params=pyvot_kwds)
         page = re.sub(r'<(a|/a).*?>', '', web_data.text, flags=re.I)
+        if 'Site Error' in page and 'Error Type: KeyError' in page:
+            page = "<html><body><br/><h2>No activity.</h2></body></html>"
         return request.make_response(
                 page,
                 headers=[
