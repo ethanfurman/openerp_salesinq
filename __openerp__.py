@@ -11,7 +11,7 @@
     'website': 'www.openerp.com',
     'depends': [
             "base",
-            "fis_integration",
+            "fnx",
             "product",
             ],
     'css': [
