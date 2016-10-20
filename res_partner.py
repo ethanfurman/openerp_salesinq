@@ -31,6 +31,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             result[partner_id]['salesinq_data'] = ''
             continue
         htmlContentList = []
+        initial = link = None
         for shortname, longname, SalesInqURL in partner_links:
             if shortname == 'salesinq_yrs':
                 htmlContentList.append('<br>')
@@ -49,14 +50,18 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     codes = si_fields + (si_code,)
                 else:
                     codes = si_fields[1:] + (si_code,)
-                htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
-                        % (SalesInqURL % codes, cr.dbname, uid, longname)
+                link = 'salesinq/%s&oe_db=%s&oe_uid=%s' % (SalesInqURL % codes, cr.dbname, uid)
+                if len(partner_links) > 1:
+                    htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                        % (link, longname)
                         )
+                if initial is None:
+                    initial = link
         htmlContentList.append('''
                 <div id="salesinqcontent"></div>
                 <script type="text/javascript">
-                ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
-                </script>''' % (partner_links[0][2] % (si_fields[0], si_fields[1], si_code), cr.dbname, uid) )
+                ajaxpage('%s','salesinqcontent');
+                </script>''' % (link, ) )
         result[partner_id]['salesinq_data'] = dynamic_page_stub % "".join(htmlContentList)
     return result
 

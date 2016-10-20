@@ -18,24 +18,28 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             result[product['id']]['salesinq_data'] = ''
             continue
         htmlContentList = []
-        if len(product_links) > 1:
-            for shortname, longname, SalesInqURL in product_links:
-                if SalesInqURL.count('%s') == 0:
-                    if custom_access:
-                        htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
-                                % (SalesInqURL, cr.dbname, uid, longname)
-                                )
-                    continue
-                if shortname == 'salesinq_allyears_rep':
-                    htmlContentList.append('<br>')
-                htmlContentList.append('''<a href="javascript:ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
-                        % (SalesInqURL % si_code, cr.dbname, uid, longname)
-                        )
+        initial = link = None
+        for shortname, longname, SalesInqURL in product_links:
+            if SalesInqURL.count('%s') == 0:
+                if custom_access:
+                    htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
+                            % (SalesInqURL, cr.dbname, uid, longname)
+                            )
+                continue
+            if shortname == 'salesinq_allyears_rep':
+                htmlContentList.append('<br>')
+            link = 'salesinq/%s&oe_db=%s&oe_uid=%s' % (SalesInqURL % si_code, cr.dbname, uid)
+            if len(product_links) > 1:
+                htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                    % (link, longname)
+                    )
+            if initial is None:
+                initial = link
         htmlContentList.append('''
                 <div id="salesinqcontent"></div>
                 <script type="text/javascript">
-                ajaxpage('salesinq/%s&oe_db=%s&oe_uid=%s','salesinqcontent');
-                </script>''' % (product_links[0][2] % si_code, cr.dbname, uid) )
+                ajaxpage('%s','salesinqcontent');
+                </script>''' % (link, ) )
         result[product['id']]['salesinq_data'] = dynamic_page_stub % "".join(htmlContentList)
     return result
 
