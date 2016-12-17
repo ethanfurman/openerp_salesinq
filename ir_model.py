@@ -1,7 +1,7 @@
 "enhancements to allow displaying and searching the external_id field"
 
 from openerp import tools
-from openerp.osv import osv, fields
+from openerp.osv import osv
 
 class ir_model_data(osv.Model):
     "adds methods for retrieving and setting the external_id of records"
@@ -26,7 +26,6 @@ class ir_model_data(osv.Model):
         Returns the ids of the ir.model.data records corresponding to a
         given model or raise a ValueError if none found
         """
-        context = {}
         ids = self.search(cr, uid, [('model', '=', model)])
         if not ids:
             return []
