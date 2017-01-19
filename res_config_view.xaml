@@ -3,7 +3,7 @@
     ~data
 
         ~record #view_salesinq_config_settings model='ir.ui.view'
-            @name: fis integration settings
+            @name: salesinq.config.settings
             @model: salesinq.config.settings
             @arch type='xml'
                 ~form $Configure_SalesInq_Url version='7.0' .oe_form_configuration
@@ -15,12 +15,24 @@
                         ~div
                             ~label for='company_id' $Select_Company
                             @company_id widget='selection' on_change='onchange_company_id(company_id, context)' .oe_inline
-                    ~separator $SalesInq_Configuration
+                    ~separator $Server
                     ~group col='4'
                         ~div
                             ~div
-                                ~label for='salesinq_url'
-                                @salesinq_url
+                                ~group
+                                    ~label for='salesinq_url' $Address
+                                    @salesinq_url nolabel='1'
+                    ~separator $Links
+                    ~group col='4'
+                        ~div
+                            ~div
+                                ~group
+                                    // ~label for='product_link_ids' $Product_Links
+                                    @product_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1'
+                                ~separator cols='4'
+                                ~group
+                                    // ~label for='partner_link_ids' $Partner_Links
+                                    @partner_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1'
 
         ~record #action_salesinq_config model='ir.actions.act_window'
             @name: Configure SalesInq Url
@@ -30,3 +42,22 @@
             @target: inline
 
         ~menuitem #menu_salesinq_config name='SalesInq' parent='base.menu_config' sequence='29' action='action_salesinq_config'
+
+        ~record model='ir.ui.view' #salesinq_config_product_link_tree
+            @name: salesinq.config.product_link
+            @model: salesinq.config.product_link
+            @arch type='xml'
+                ~tree $SalesInq_Product_Links editable='bottom'
+                    @company_id invisible='1'
+                    @name $Product_Link
+                    @query
+
+        ~record model='ir.ui.view' #salesinq_config_partner_link_tree
+            @name: salesinq.config.partner_link
+            @model: salesinq.config.partner_link
+            @arch type='xml'
+                ~tree $SalesInq_Partner_Links editable='bottom'
+                    @company_id invisible='1'
+                    @name $Partner_Link
+                    @query
+

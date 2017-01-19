@@ -3,10 +3,10 @@ from fnx.oe import dynamic_page_stub
 from osv import osv, fields
 
 from salesinq import allow_custom_access
-from _links import partner_links
 
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
+    user = obj.pool.get('res.users').browse(cr, uid, uid, context=None)
     # check group permissions for user
     custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
@@ -30,33 +30,47 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         if not valid_si_code:
             result[partner_id]['salesinq_data'] = ''
             continue
-        htmlContentList = []
+        htmlContentList = ['<div id="centeredmenutop"><ul>']
         initial = link = None
-        for shortname, longname, SalesInqURL in partner_links:
-            if shortname == 'salesinq_yrs':
-                htmlContentList.append('<br>')
+        midpoint = len(user.company_id.partner_link_ids)//2
+        if midpoint < 3:
+            midpoint = 0
+        active_list = []
+        for i, link_record in enumerate(user.company_id.partner_link_ids):
+            longname, SalesInqURL = link_record.name, link_record.query
+            if midpoint and midpoint == i:
+                htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
+                htmlContentList.append('</ul></div><div id="centeredmenubottom"><ul>')
+                active_list = []
             if partner.customer:
-                si_fields = 'Cust','Cust'
+                settings = dict(
+                        cust_or_item='Cust',
+                        cust_or_supplier='Cust',
+                        )
             else: # .supplier:
-                si_fields = 'Item', 'Supplier'
-            subs = SalesInqURL.count('%s')
-            if subs == 0:
+                settings = dict(
+                        cust_or_item='Item',
+                        cust_or_supplier='Supplier',
+                        )
+            settings['partner_code'] = si_code
+            settings['db'] = cr.dbname
+            settings['uid'] = uid
+            if longname == 'Custom':
                 if custom_access:
-                    htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
-                            % (SalesInqURL, cr.dbname, uid, longname)
-                            )
+                    active_list.append(
+                        ('<li><a href="salesinq/custom?oe_db={db}&oe_uid={uid}"'
+                        ' target="_blank">Custom</a></li>').format(**settings)
+                        )
             else:
-                if subs == 3:
-                    codes = si_fields + (si_code,)
-                else:
-                    codes = si_fields[1:] + (si_code,)
-                link = 'salesinq/%s&oe_db=%s&oe_uid=%s' % (SalesInqURL % codes, cr.dbname, uid)
-                if len(partner_links) > 1:
-                    htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+                link = ('salesinq/standard?' + SalesInqURL + '&oe_db={db}&oe_uid={uid}').format(**settings)
+                if len(user.company_id.partner_link_ids) > 1:
+                    active_list.append('''<li><a href="javascript:ajaxpage('%s','salesinqcontent');">%s&nbsp;</a></li>'''
                         % (link, longname)
                         )
                 if initial is None:
                     initial = link
+        htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
+        htmlContentList.append('</ul></div>')
         htmlContentList.append('''
                 <div id="salesinqcontent"></div>
                 <script type="text/javascript">

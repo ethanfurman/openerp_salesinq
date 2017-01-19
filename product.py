@@ -3,9 +3,9 @@ from fnx.oe import dynamic_page_stub
 from osv import osv, fields
 
 from salesinq import allow_custom_access
-from _links import product_links
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
+    user = obj.pool.get('res.users').browse(cr, uid, uid, context=None)
     # check group permissions for user
     custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
@@ -17,24 +17,36 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         if not valid_si_code:
             result[product['id']]['salesinq_data'] = ''
             continue
-        htmlContentList = []
+        htmlContentList = ['<div id="centeredmenutop"><ul>']
         initial = link = None
-        for shortname, longname, SalesInqURL in product_links:
-            if SalesInqURL.count('%s') == 0:
+        active_list = []
+        for i, link_record in enumerate(user.company_id.product_link_ids):
+            longname, SalesInqURL = link_record.name, link_record.query
+            if i and i % 3 == 0:
+                htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
+                htmlContentList.append('</ul></div><div id="centeredmenubottom"><ul>')
+                active_list = []
+            settings = dict(
+                    url=SalesInqURL.format(product_code=si_code),
+                    db=cr.dbname,
+                    uid=uid,
+                    )
+            if longname == 'Custom':
                 if custom_access:
-                    htmlContentList.append('''<a href="salesinq/%s?oe_db=%s&oe_uid=%s" target="_blank">&bullet;%s&bullet;&nbsp;</a>'''
-                            % (SalesInqURL, cr.dbname, uid, longname)
-                            )
+                    active_list.append(
+                        ('<li><a href="salesinq/custom?oe_db={db}&oe_uid={uid}"'
+                        ' target="_blank">Custom</a></li>').format(**settings)
+                        )
                 continue
-            if shortname == 'salesinq_allyears_rep':
-                htmlContentList.append('<br>')
-            link = 'salesinq/%s&oe_db=%s&oe_uid=%s' % (SalesInqURL % si_code, cr.dbname, uid)
-            if len(product_links) > 1:
-                htmlContentList.append('''<a href="javascript:ajaxpage('%s','salesinqcontent');">&bullet;%s&bullet;&nbsp;</a>'''
+            link = 'salesinq/standard?{url}&oe_db={db}&oe_uid={uid}'.format(**settings)
+            if len(user.company_id.product_link_ids) > 1:
+                active_list.append('''<li><a href="javascript:ajaxpage('%s','salesinqcontent')">%s</a></li>'''
                     % (link, longname)
                     )
             if initial is None:
                 initial = link
+        htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
+        htmlContentList.append('</ul></div>')
         htmlContentList.append('''
                 <div id="salesinqcontent"></div>
                 <script type="text/javascript">

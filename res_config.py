@@ -1,6 +1,6 @@
 from openerp.osv import fields, osv
 
-class salesinq_config_settings(osv.osv_memory):
+class salesinq_config_settings(osv.TransientModel):
     _name = 'salesinq.config.settings'
     _inherit = "res.config.settings"
     _columns = {
@@ -10,7 +10,20 @@ class salesinq_config_settings(osv.osv_memory):
             type='char',
             string='SalesInq Server',
             ),
-    }
+        'product_link_ids': fields.related(
+            'company_id', 'product_link_ids',
+            type='one2many',
+            relation='salesinq.config.product_link',
+            fields_id='company_id',
+            string='Product Link',
+            ),
+        'partner_link_ids': fields.related(
+            'company_id', 'partner_link_ids',
+            type='one2many',
+            relation='salesinq.config.partner_link',
+            fields_id='company_id',
+            string='Partner Link'),
+        }
 
     def create(self, cr, uid, values, context=None):
         id = super(salesinq_config_settings, self).create(cr, uid, values, context)
@@ -38,5 +51,9 @@ class salesinq_config_settings(osv.osv_memory):
             company = self.pool.get('res.company').browse(cr, uid, company_id, context=context)
             values = {
                 'salesinq_url': company.salesinq_url,
+                'product_link_ids': [r.id for r in company.product_link_ids],
+                'partner_link_ids': [r.id for r in company.partner_link_ids],
                 }
         return {'value': values}
+
+

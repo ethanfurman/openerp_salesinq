@@ -9,3 +9,67 @@
 .salesinq table th:first-child, .salesinq table td:first-child {
   text-align: left;
 }
+/* adapted from
+ * http://matthewjamestaylor.com/blog/beautiful-css-centered-menus-no-hacks-full-cross-browser-support#
+ */
+#centeredmenutop {
+   float:left;
+   width:100%;
+   background:#fff;
+   border-top:2px solid #000;
+   border-bottom:2px solid #000;
+   overflow:hidden;
+   position:relative;
+}
+#centeredmenubottom {
+   float:left;
+   width:100%;
+   background:#fff;
+   border-bottom:2px solid #000;
+   overflow:hidden;
+   position:relative;
+}
+#centeredmenutop ul,
+#centeredmenubottom ul {
+   clear:left;
+   float:left;
+   list-style:none;
+   margin:0;
+   padding:0;
+   position:relative;
+   left:50%;
+   text-align:center;
+}
+#centeredmenutop ul li,
+#centeredmenubottom ul li {
+   display:block;
+   float:left;
+   list-style:none;
+   margin:0;
+   padding:0;
+   position:relative;
+   right:50%;
+}
+#centeredmenutop ul li a,
+#centeredmenubottom ul li a {
+   display:block;
+   margin:0 0 0 1px;
+   padding:3px 10px;
+   background:#ddd;
+   color:#000;
+   text-decoration:none;
+   line-height:1.3em;
+}
+#centeredmenutop ul li a:hover,
+#centeredmenubottom ul li a:hover {
+   background:#369;
+   color:#fff;
+}
+#centeredmenutop ul li a.active,
+#centeredmenutop ul li a.active:hover,
+#centeredmenubottom ul li a.active,
+#centeredmenubottom ul li a.active:hover {
+   color:#fff;
+   background:#000;
+   font-weight:bold;
+}
