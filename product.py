@@ -14,8 +14,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         si_code = (product['xml_id'] or '').replace("'","%%27")
         valid_si_code = is_valid(si_code)
         result[product['id']]['is_salesinq_able'] = valid_si_code
-        if not valid_si_code:
-            result[product['id']]['salesinq_data'] = ''
+        if not valid_si_code or not user.company_id.product_link_ids:
+            result[product['id']]['salesinq_data'] = '<html><body><br/><h2>No links defined.</h2></body></html>'
             continue
         htmlContentList = ['<div id="centeredmenutop"><ul>']
         initial = link = None
