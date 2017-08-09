@@ -15,10 +15,10 @@
 .legend table th {
   min-width: 175px;
   max-width: 30%;
-  padding: 0px 40px 0px 0px;
+  padding: 0px 15px 0px 0px;
 }
 .legend table td {
-  padding: 0px 40px 0px 0px;
+  padding: 0px 15px 0px 0px;
 }
 
 /* adapted from
