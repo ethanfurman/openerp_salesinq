@@ -29,17 +29,15 @@
                                     ~th: Customers
                                     ~th: Suppliers
                                 ~tr
-                                    ~td: {product_code} --> FIS ID of product
+                                    ~td rowspan='3': {product_code} --> FIS ID of product
                                     ~td: {cust_or_item} --> Cust
                                     ~td: {cust_or_item} --> Item
                                 ~tr
-                                    ~td
                                     ~td: {cust_or_supplier} --> Cust
                                     ~td: {cust_or_supplier} --> Supplier
                                 ~tr
-                                    ~td
-                                    ~td: {partner_code} --> FIS ID of Customer/Supplier
-                                    ~td: {partner_code} --> FIS ID of Customer/Supplier
+                                    ~td: {partner_code} --> FIS ID of Customer
+                                    ~td: {partner_code} --> FIS ID of Supplier
 
         ~record #action_salesinq_config model='ir.actions.act_window'
             @name: Configure SalesInq Url
