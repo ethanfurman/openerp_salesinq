@@ -28,10 +28,18 @@ class SalesInqProxy(http.Controller):
         registry = openerp.modules.registry.RegistryManager.get(db)
         with registry.cursor() as cr:
             base_url = registry.get('res.users').browse(cr, SUPERUSER_ID, uid).company_id.salesinq_url
+        _logger.info('salesinq request going to: %r' % ('http://%s/pyvotRpt' % base_url, ))
+        _logger.info('  with params: %r' % (pyvot_kwds, ))
         web_data = requests.get('http://%s/pyvotRpt' % base_url, params=pyvot_kwds)
         page = re.sub(r'<(a|/a).*?>', '', web_data.text, flags=re.I)
-        if 'Site Error' in page and 'Error Type: KeyError' in page:
-            page = "<html><body><br/><h2>No activity.</h2></body></html>"
+        if 'Site Error' in page: # and 'Error Type: KeyError' in page:
+            link = 'http://%s/pyvotRpt?' % (base_url, )
+            link += '&'.join(['%s=%s' % (k, v) for k, v in pyvot_kwds.items()])
+            page = page.replace(
+                    '</body>',
+                    '<div><h3>URL:</h3><pre>%s</pre></div></body>' % link,
+                    )
+        #     page = "<html><body><br/><h2>No activity.</h2></body></html>"
         page = page.replace('(edit settings)', '')
         return request.make_response(
                 page,

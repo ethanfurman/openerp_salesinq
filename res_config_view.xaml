@@ -15,38 +15,27 @@
                         ~div
                             ~label for='company_id' $Select_Company
                             @company_id widget='selection' on_change='onchange_company_id(company_id, context)' .oe_inline
-                    ~separator $Server
-                    ~group col='4'
-                        ~div
-                            ~div
-                                ~group
-                                    ~label for='salesinq_url' $Address
-                                    @salesinq_url nolabel='1'
-                    ~separator $Links
-                    ~group col='4'
-                        ~div
-                            ~div
-                                ~group
-                                    // ~label for='product_link_ids' $Product_Links
-                                    @product_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
-                                ~separator cols='4'
-                                ~group
-                                    // ~label for='partner_link_ids' $Partner_Links
-                                    @partner_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
-                                ~group $Legend .legend
-                                    ~table
-                                        ~tr
-                                            ~th: Products
-                                            ~th: Customers
-                                            ~th: Suppliers
-                                        ~tr
-                                            ~td: {product_code} --> FIS ID of product
-                                            ~td: {cust_or_supplier} --> Cust
-                                            ~td: {cust_or_supplier} --> Supplier
-                                        ~tr
-                                            ~td
-                                            ~td: {cust_or_item} --> Cust
-                                            ~td: {cust_or_item} --> Item
+                    ~group $Server
+                        ~label for='salesinq_url' $Address
+                        @salesinq_url nolabel='1'
+                    ~group $Links
+                        ~group colspan='4'
+                            @product_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
+                            @partner_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
+                        ~group $Legend .legend
+                            ~table
+                                ~tr
+                                    ~th: Products
+                                    ~th: Customers
+                                    ~th: Suppliers
+                                ~tr
+                                    ~td: {product_code} --> FIS ID of product
+                                    ~td: {cust_or_supplier} --> Cust
+                                    ~td: {cust_or_supplier} --> Supplier
+                                ~tr
+                                    ~td
+                                    ~td: {cust_or_item} --> Cust
+                                    ~td: {cust_or_item} --> Item
 
         ~record #action_salesinq_config model='ir.actions.act_window'
             @name: Configure SalesInq Url
