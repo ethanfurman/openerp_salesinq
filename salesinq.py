@@ -1,11 +1,11 @@
-from openerp import BASE_DIR
+from openerp import CONFIG_DIR
 from osv import osv, fields
 from scription import OrmFile
 from urllib2 import HTTPBasicAuthHandler, build_opener
 import re
 
 salesinq = 'http://openerp.sunridgefarms.com/SalesInq'
-settings = OrmFile('%s/config/fnx.ini' % BASE_DIR, section='openerp')
+settings = OrmFile('%s/fnx.ini' % CONFIG_DIR, section='openerp')
 auth_handler = HTTPBasicAuthHandler()
 auth_handler.add_password(realm='Zope', user=settings.user, passwd=settings.pw, uri=salesinq)
 webpage = build_opener(auth_handler)
