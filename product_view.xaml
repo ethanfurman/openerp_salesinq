@@ -9,7 +9,7 @@
             @inherit_id ref='product.product_normal_form_view'
             @priority eval='7'
             @arch type='xml'
-                @default_code position='after'
+                @name position='after'
                     @is_salesinq_able invisible='1'
                 ~page $Sales position='after'
                     ~page $SalesInq attrs="{'invisible':[('is_salesinq_able','!=',True)]}"
