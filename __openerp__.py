@@ -13,7 +13,6 @@
             "base",
             "fnx",
             "product",
-            "wholeherb_integration",
             ],
     'css': [
             "static/src/css/salesinq.css",
