@@ -28,8 +28,8 @@ class salesinq_product_link(osv.Model):
     _name = 'salesinq.config.product_link'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company'),
-        'name': fields.char('Link Text', size=24),
-        'query': fields.char('Link Query', size=128),
+        'name': fields.char('Link Text', size=64),
+        'query': fields.char('Link Query', size=255),
         }
     _constraints = [(unique, 'name or query already in use', ['name', 'query'])]
 
@@ -38,8 +38,8 @@ class salesinq_partner_link(osv.Model):
     _name = 'salesinq.config.partner_link'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company'),
-        'name': fields.char('Link Text', size=24),
-        'query': fields.char('Link Query', size=128),
+        'name': fields.char('Link Text', size=64),
+        'query': fields.char('Link Query', size=255),
         }
     _constraints = [(unique, 'name or query already in use', ['name', 'query'])]
 
