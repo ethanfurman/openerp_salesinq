@@ -21,7 +21,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     for partner_id, parent_id in chain.items():
         partner = partners[partner_id]
         si_code = (partner.xml_id or '').replace("'","%27")
-        valid_si_code = partner.is_salesinq_able
+        valid_si_code = is_valid(si_code)
+        result[partner.id]['is_salesinq_able'] = valid_si_code
         if parent_id is not None and not valid_si_code:
             partner = partners[partner_id]
             si_code = (partner.xml_id or '').replace("'","%27")
@@ -90,10 +91,16 @@ class res_partner(osv.Model):
     _inherit = 'res.partner'
 
     _columns = {
-        'is_salesinq_able': fields.boolean(string='Is SalesInq-able'),
+        'is_salesinq_able': fields.function(
+            salesinq,
+            multi='salesinq',
+            string='SalesInq-able',
+            type='boolean',
+            method=False,
+            ),
         'salesinq_data': fields.function(
             salesinq,
-            multi='custom',
+            multi='salesinq',
             string='Years and Months',
             type='html',
             method=False,
