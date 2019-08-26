@@ -1,7 +1,7 @@
 from collections import defaultdict
 from fnx.oe import dynamic_page_stub
+from openerp.tools import self_ids
 from osv import osv, fields
-
 from salesinq import allow_custom_access
 
 
@@ -97,6 +97,9 @@ class res_partner(osv.Model):
             string='SalesInq-able',
             type='boolean',
             method=False,
+            store={
+                'res.partner': (self_ids, ['xml_id'], 10),
+                },
             ),
         'salesinq_data': fields.function(
             salesinq,
