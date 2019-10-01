@@ -86,6 +86,7 @@ def salesinq(method, delete, *files, **extra):
             #
             # get salesinq url
             #
+            print('getting SalesInq URL')
             company_id = get_records(
                     oe, 'res.users',
                     domain=[('login','=','fis_daemon')],
@@ -110,6 +111,7 @@ def salesinq(method, delete, *files, **extra):
             #
             # get all products
             #
+            print('getting products')
             oe_products = dict([
                 (r.xml_id, r)
                 for r in get_records(
@@ -121,6 +123,7 @@ def salesinq(method, delete, *files, **extra):
             #
             # get all FIS customers
             #
+            print('getting customers')
             oe_customers = dict([
                 (r.xml_id, r)
                 for r in get_records(
@@ -138,16 +141,25 @@ def salesinq(method, delete, *files, **extra):
             #
             salesinq_data = []
             seen = set()
-            for cust_no, m2o in sorted(oe_customers.items()):
+            print('getting SalesInq data')
+            for cust_no, m2o in ProgressView(
+                    iterable=sorted(oe_customers.items()),
+                    message='getting SalesInq data',
+                    view_type='bar',
+                    ):
                 salesinq_data.extend(retrieve_salesinq_info(cust_no))
             #
-            for row in salesinq_data:
+            for row in ProgressView(
+                    iterable=salesinq_data,
+                    message='processing SalesInq data',
+                    view_type='bar',
+                    ):
                 oe_product = oe_products.get(row.product)
                 oe_partner = oe_customers.get(row.cust_no)
                 if oe_product is None:
                     skipped_count += 1
                     continue
-                key='%s-%s' % (oe_partner.xml_id, oe_product.xml_id),
+                key='%s-%s' % (oe_partner.xml_id, oe_product.xml_id)
                 if key in seen:
                     continue
                 seen.add(key)
@@ -166,7 +178,7 @@ def salesinq(method, delete, *files, **extra):
                     skipped_count += 1
                     continue
                 else:
-                    cross_ref.create(record)
+                    cross_ref.create(key, record)
                     added_count += 1
             print('%d products added\n%d products skipped'
                     % (added_count, skipped_count, ),
