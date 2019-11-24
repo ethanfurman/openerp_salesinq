@@ -10,6 +10,11 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     # check group permissions for user
     custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
+    # get default for user if one exists
+    first_link = user.salesinq_partner_view or None
+    first_link_id = 0
+    if first_link:
+        first_link_id = int(first_link.split('-', 1)[0])
     # partner_id is the key, value is partner.parent_id or None
     chain = {}
     partners = dict([(r.id, r) for r in obj.browse(cr, uid, ids, context=context)])
@@ -68,6 +73,10 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                         % (link, longname)
                         )
                 if initial is None:
+                # capture the first possible link, just in case
+                    initial = link
+                if first_link_id and link_record.id == first_link_id:
+                    # reset initial to user selected link
                     initial = link
         htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
         htmlContentList.append('</ul></div>')
@@ -75,7 +84,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 <div id="salesinqcontent"></div>
                 <script type="text/javascript">
                 ajaxpage('%s','salesinqcontent');
-                </script>''' % (link, ) )
+                </script>''' % (initial, ) )
         result[partner_id]['salesinq_data'] = dynamic_page_stub % "".join(htmlContentList)
     return result
 

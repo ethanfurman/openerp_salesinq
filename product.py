@@ -10,6 +10,11 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     custom_access = allow_custom_access(obj, cr, uid, context)
     fields = fields[:]
     result = defaultdict(dict)
+    # get default for user if one exists
+    first_link = user.salesinq_product_view or None
+    first_link_id = 0
+    if first_link:
+        first_link_id = int(first_link.split('-', 1)[0])
     for product in obj.read(cr, uid, ids, fields=['xml_id'], context=context):
         si_code = (product['xml_id'] or '').replace("'","%%27")
         valid_si_code = is_valid(si_code)
@@ -44,6 +49,10 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                     % (link, longname)
                     )
             if initial is None:
+                # capture the first possible link, just in case
+                initial = link
+            if first_link_id and link_record.id == first_link_id:
+                # reset initial to user selected link
                 initial = link
         htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
         htmlContentList.append('</ul></div>')
@@ -51,7 +60,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                 <div id="salesinqcontent"></div>
                 <script type="text/javascript">
                 ajaxpage('%s','salesinqcontent');
-                </script>''' % (link, ) )
+                </script>''' % (initial, ) )
         result[product['id']]['salesinq_data'] = dynamic_page_stub % "".join(htmlContentList)
     return result
 
