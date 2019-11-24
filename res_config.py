@@ -22,7 +22,8 @@ class salesinq_config_settings(osv.TransientModel):
             type='one2many',
             relation='salesinq.config.partner_link',
             fields_id='company_id',
-            string='Partner Link'),
+            string='Partner Link',
+            ),
         }
 
     def create(self, cr, uid, values, context=None):

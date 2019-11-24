@@ -1,7 +1,8 @@
-__all__ = ['product', 'res_partner', 'salesinq', 'company', 'res_config', 'controllers']
+__all__ = ['product', 'res_partner', 'res_users', 'salesinq', 'company', 'res_config', 'controllers']
 
 import product
 import res_partner
+import res_users
 import salesinq
 import company
 import res_config
@@ -36,9 +37,10 @@ __openerp__ = """{
     'css': [
             "static/src/css/salesinq.css",
             ],
-    'update_xml': [
+    'data': [
             'res_config_view.xaml',
             'res_partner_view.xaml',
+	    'res_users_view.xaml',
             'product_view.xaml',
             'security/salesinq_security.xaml',
             'security/ir.model.access.csv',

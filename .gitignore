@@ -6,3 +6,4 @@
 *.xsl
 .hg/
 .hgignore
+__openerp__.py

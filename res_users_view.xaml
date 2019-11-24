@@ -1,0 +1,19 @@
+!!! xml1.0
+~openerp
+    ~data
+
+        // Add default SalesInq views to user
+        ~record model='ir.ui.view' #view_res_users_salesinq_form
+            @model: res.users
+            @inherit_id ref='base.view_users_form'
+            @priority eval='9'
+            @arch type='xml'
+                ~xpath expr="//form/sheet/notebook" position='inside'
+                    ~page $SalesInq_Views attrs="{'invisible': [('salesinq_privileges','=',False)]}"
+                        @salesinq_privileges invisible='1'
+                        ~group
+                            ~group
+                                @salesinq_product_view
+                            ~group
+                                @salesinq_partner_view
+
