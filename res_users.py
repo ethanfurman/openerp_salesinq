@@ -44,7 +44,7 @@ class res_users(osv.Model):
     #XXX: doesn't reset if user's company is changed
 
     _columns = {
-		    'salesinq_product_view': fields.selection(
+            'salesinq_product_view': fields.selection(
                 string='Default Product View',
                 selection=_salesinq_get_product_view_links,
                 ),
