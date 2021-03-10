@@ -25,11 +25,14 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     result = defaultdict(dict)
     for partner_id, parent_id in chain.items():
         partner = partners[partner_id]
+        shipto = partner.fis_ship_to_code
+        if shipto:
+            partner = partner.fis_ship_to_parent_id
         si_code = (partner.xml_id or '').replace("'","%27")
         valid_si_code = is_valid(si_code)
         result[partner.id]['is_salesinq_able'] = valid_si_code
         if parent_id is not None and not valid_si_code:
-            partner = partners[partner_id]
+            partner = partners[parent_id]
             si_code = (partner.xml_id or '').replace("'","%27")
             valid_si_code = partner.is_salesinq_able
         if not valid_si_code or not user.company_id.partner_link_ids:
@@ -37,12 +40,18 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
             continue
         htmlContentList = ['<div id="centeredmenutop"><ul>']
         initial = link = None
-        midpoint = len(user.company_id.partner_link_ids)//2
+        si_links = user.company_id.partner_link_ids
+        if shipto:
+            # remove ship-to sub-sort links
+            si_links = [l for l in si_links if 'Ship To' not in l.name]
+        midpoint = len(si_links) // 2
         if midpoint < 3:
             midpoint = 0
         active_list = []
-        for i, link_record in enumerate(user.company_id.partner_link_ids):
+        for i, link_record in enumerate(si_links):
             longname, SalesInqURL = link_record.name, link_record.query
+            if shipto:
+                SalesInqURL += '&ShipTo_op=%s%s' % (si_code, shipto)
             if midpoint and midpoint == i:
                 htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
                 htmlContentList.append('</ul></div><div id="centeredmenubottom"><ul>')
@@ -68,7 +77,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
                         )
             else:
                 link = ('salesinq/standard?' + SalesInqURL + '&oe_db={db}&oe_uid={uid}').format(**settings)
-                if len(user.company_id.partner_link_ids) > 1:
+                if len(si_links) > 1:
                     active_list.append('''<li><a href="javascript:ajaxpage('%s','salesinqcontent');">%s&nbsp;</a></li>'''
                         % (link, longname)
                         )
