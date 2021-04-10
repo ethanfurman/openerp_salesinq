@@ -26,7 +26,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     for partner_id, parent_id in chain.items():
         partner = partners[partner_id]
         shipto = partner.fis_ship_to_code
-        if shipto:
+        if partner.fis_ship_to_parent_id:
+            # this is a ship to
             partner = partner.fis_ship_to_parent_id
         si_code = (partner.xml_id or '').replace("'","%27")
         valid_si_code = is_valid(si_code)

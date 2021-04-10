@@ -13,3 +13,16 @@
                         ~page $SalesInq attrs="{'invisible': [('is_salesinq_able','=',False)]}"
                             @is_salesinq_able invisible='1'
                             @salesinq_data nolabel='1' .salesinq
+
+
+        ~record model='ir.ui.view' #view_ship_to_entry_salesinq_form
+                @name: view.res.partner.ship_to.entry.salesinq.form
+                @model: res.partner
+                @inherit_id ref='fis_integration.view_ship_to_entry_form'
+                @priority eval='18'
+                @arch type='xml'
+                    ~xpath expr="//form/sheet/notebook" position='inside'
+                        ~page $SalesInq attrs="{'invisible': [('is_salesinq_able','=',False)]}"
+                            @is_salesinq_able invisible='1'
+                            @salesinq_data nolabel='1' .salesinq
+                                
