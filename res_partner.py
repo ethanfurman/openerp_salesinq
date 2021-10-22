@@ -19,11 +19,9 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     chain = {}
     partners = dict([(r.id, r) for r in obj.browse(cr, uid, ids, context=context)])
     for partner_id, partner in partners.items():
-        chain[partner_id] = None
-        if partner.parent_id:
-            chain[partner_id] = partner.parent_id
+        chain[partner_id] = partner.parent_id or None
     result = defaultdict(dict)
-    for partner_id, parent_id in chain.items():
+    for partner_id, parent in chain.items():
         partner = partners[partner_id]
         shipto = partner.fis_ship_to_code
         if partner.fis_ship_to_parent_id:
@@ -32,8 +30,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         si_code = (partner.xml_id or '').replace("'","%27")
         valid_si_code = is_valid(si_code)
         result[partner.id]['is_salesinq_able'] = valid_si_code
-        if parent_id is not None and not valid_si_code:
-            partner = partners[parent_id]
+        if parent is not None and not valid_si_code:
+            partner = parent
             si_code = (partner.xml_id or '').replace("'","%27")
             valid_si_code = partner.is_salesinq_able
         if not valid_si_code or not user.company_id.partner_link_ids:
