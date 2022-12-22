@@ -1,0 +1,386 @@
+#!/usr/local/sbin/suid-python --virtualenv
+
+# imports
+from __future__ import print_function
+
+from scription import *
+from aenum import NamedTuple
+from antipathy import Path
+from collections import defaultdict
+from openerplib import get_connection, get_records, AttrDict
+from tools import Model
+from pandaemonium import PidLockFile
+# from tools import allow_exception, Model
+import os
+import re
+import requests
+
+
+C = Color
+grey = C.Dim | C.FG_White
+white = C.Normal | C.FG_White
+same = C.Normal | C.FG_White
+oldv = C.Normal | C.FG_Red
+newv = C.Normal | C.FG_Green
+
+
+# API
+@Script(
+        dryrun=Spec('do not make changes, only show what changes would be made', FLAG),
+        list_records=Spec('list added/changed records', FLAG),
+        raise_on_exception=Spec('do not ignore exceptions', FLAG, abbrev=('r', 'raise')),
+        )
+def main(dryrun, list_records, raise_on_exception):
+    global config, oe, errors, DRYRUN, LIST_RECORDS, RAISE_ON_EXCEPTION, VIEW_TYPE, BORDER, script_verbosity
+    DRYRUN = LIST_RECORDS = False
+    config = OrmFile('%s/config/fnx.ini' % os.environ['VIRTUAL_ENV'], types={'_path': Path})
+    oe = config.openerp
+    oe = get_connection(hostname=oe.host, database=oe.db, login=oe.user, password=oe.pw)
+    errors = defaultdict(list)
+    if dryrun:
+        DRYRUN = True
+        if not script_verbosity:
+            script_verbosity = 1
+    if list_records:
+        LIST_RECORDS = True
+        if not script_verbosity:
+            script_verbosity = 1
+    RAISE_ON_EXCEPTION = raise_on_exception
+    VIEW_TYPE = 'none' if LIST_RECORDS else 'percent'
+    BORDER = 'box' if LIST_RECORDS and script_verbosity > 1 else None
+
+@Command(
+        files=Spec('old and now files (separated by a comma)', ),
+        method=Spec(
+            'perform quick or full comparison [quick: compare against old QALL file;'
+            ' full: compare against OpenERP records; OpenERP only updated on full]',
+            OPTION,
+            choices=['quick', 'full'],
+            force_default='quick',
+            type=lambda m: m.lower(),
+            ),
+        delete=Spec('delete records [default: send email]', FLAG,),
+        extra=Spec('extra arguments', OPTION),
+        )
+def salesinq(method, delete, *files, **extra):
+    """
+    Update fis_integration.customer_product_cross_reference from SalesInq data.
+    """
+    #
+    # for each FIS customer:
+    #    read product sales history from SalesInq grouped by ship-to
+    #    update global product cache with product (for customer manual entry)
+    #    for each parsed product row
+    #        parse row into column of product ID and yearly qty
+    #        if qty > 0 in last two years
+    #            store product id in customer/ship-to cache
+    # for each customer in cache
+    #    update cpcr table with product ids
+    # update cpcr with global cache product ids
+    # 
+    global DELETE, EXTRA, SALESINQ_URL, company_id, oe_products, oe_customers
+    EXTRA = extra
+    DELETE = delete
+    try:
+        with PidLockFile('/var/run/salesinq_update.pid'):
+            #
+            # get salesinq url
+            #
+            print('getting SalesInq URL')
+            company_id = get_records(
+                    oe, 'res.users',
+                    domain=[('login','=','fis_daemon')],
+                    fields=['company_id'],
+                    )[0].company_id.id
+
+            SALESINQ_URL = get_records(
+                    oe, 'res.company',
+                    domain=[('id','=',company_id)],
+                    )[0].salesinq_url
+            #
+            # get cross ref model
+            #
+            context = {'fis-updates': True, 'active_test': False}
+            cross_ref = Model(
+                    oe.get_model('fis_integration.customer_product_cross_reference'),
+                    'salesinq',
+                    'F000',
+                    context,
+                    RAISE_ON_EXCEPTION,
+                    )
+            #
+            # get all products
+            #
+            print('getting products')
+            oe_products = dict([
+                (r.xml_id, r)
+                for r in get_records(
+                    oe, 'product.product',
+                    domain=[('module','=','F135')],
+                    fields=['id','xml_id','name'],
+                    context={'active_test': False},
+                )])
+            #
+            # get all FIS customers
+            #
+            print('getting customers')
+            oe_customers = dict([
+                (r.xml_id, r)
+                for r in get_records(
+                    oe, 'res.partner',
+                    fields=['id','xml_id','name'],
+                    domain=[('xml_id','!=',False),('module','=','F33'),('customer','=',True)],
+                )])
+            #
+            # the counts
+            #
+            added_count = 0
+            skipped_count = 0
+            #
+            # set up is complete -- do the work
+            #
+            salesinq_data = []
+            seen = set()
+            print('getting SalesInq data')
+            for cust_no, m2o in ProgressView(
+                    iterable=sorted(oe_customers.items()),
+                    message='getting SalesInq data',
+                    view_type='bar',
+                    ):
+                salesinq_data.extend(retrieve_salesinq_info(cust_no))
+            #
+            for row in ProgressView(
+                    iterable=salesinq_data,
+                    message='processing SalesInq data',
+                    view_type='bar',
+                    ):
+                oe_product = oe_products.get(row.product)
+                oe_partner = oe_customers.get(row.cust_no)
+                if oe_product is None:
+                    skipped_count += 1
+                    continue
+                key='%s-%s' % (oe_partner.xml_id, oe_product.xml_id)
+                if key in seen:
+                    continue
+                seen.add(key)
+                record = AttrDict(
+                        customer_product_code=oe_product.xml_id,
+                        fis_code=oe_product.xml_id,
+                        fis_product_id=oe_product.id,
+                        key=key,
+                        list_code=oe_partner.xml_id,
+                        partner_id=oe_partner.id,
+                        source='salesinq',
+                        )
+                matches = cross_ref.search(domain=[('key','=',key)])
+                if matches:
+                    # already in system, skip
+                    skipped_count += 1
+                    continue
+                else:
+                    cross_ref.create(key, record)
+                    added_count += 1
+            print('%d products added\n%d products skipped'
+                    % (added_count, skipped_count, ),
+                    border='box',
+                    )
+
+            # if method == 'full':
+            #     with allow_exception(Exception):
+            #         handle_salesinq()
+    finally:
+        pass
+        # for m, problems in sorted(Model.errors.items()):
+        #     error('\n', m, border=('lined', '='), sep='')
+        #     for p in problems:
+        #         error('  ', p)
+        #     error()
+
+
+# helpers
+
+def retrieve_salesinq_info(cust):
+    #
+    # get/parse html of customer
+    # return list of tuples:
+    #    (ship-to, product #, qty, qty, qty, ...)
+    #
+    url = "http://%s/pyvotRpt?ck_descs=on&ck_sls=on&ck_qty=on&optX_op=ShipTo&Cust_op=%s&optY_op=Item&rptColFmt_op=allyears" % (SALESINQ_URL, cust)
+    web_data = requests.get(url)
+    # discard first four lines
+    web_data = web_data.text.split('\n')[4:]
+    current_ship_to = None
+    rows = []
+    for line in web_data:
+        row = SILine(cust, current_ship_to, line)
+        if row is not None:
+            current_ship_to = row.ship_to
+            rows.append(row)
+    return rows
+
+class SILine(NamedTuple):
+
+    cust_no = 0
+    ship_to = 1
+    product = 2
+    qty_2 = 3
+    qty_1 = 4
+    qty_0 = 5
+
+    def __new__(cls, cust_no, current_ship_to, html_line):
+        html_line = html_line.replace('> <','><').strip()
+        ship_to = ship_to_pattern.match(html_line)
+        product = product_pattern.match(html_line)
+        if ship_to:
+            result = ship_to.groups()
+            current_ship_to = result[0].split()[0][5:]
+            result = result[1:]
+        elif product and current_ship_to is not None:
+            result = product.groups()
+        else:
+            return None
+        product = result[0].split()[0]
+        qty3 = int(result[-3].replace(',',''))
+        qty2 = int(result[-2].replace(',',''))
+        qty1 = int(result[-1].replace(',',''))
+        return super(SILine, cls).__new__(
+                cls, cust_no, current_ship_to, product, qty3, qty2, qty1,
+                )
+
+
+product_pattern = re.compile(r"""
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # product
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # ttl
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-6 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-5 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-4 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-3 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-2 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-1 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # YTD qty
+    (?:<[^>]*>)+    # any number of elements
+    $
+    """, re.VERBOSE)
+
+ship_to_pattern = re.compile(r"""
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # ship-to
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # product
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # ttl
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-6 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-5 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-4 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-3 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-2 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # year-1 qty
+    (?:<[^>]*>)+    # any number of elements
+    ([^<]+)         # YTD qty
+    (?:<[^>]*>)+    # any number of elements
+    $
+    """, re.VERBOSE)
+
+
+
+# main
+
+Main()
+# def handle_salesinq():
+#     print('processing salesinq data', border=('flag', '#'))
+#     context = {'fis-updates': True, 'active_test': False}
+#     cross_ref = Model(
+#             oe.get_model('fis_integration.customer_product_cross_reference'),
+#             'salesinq',
+#             'F000',
+#             context,
+#             RAISE_ON_EXCEPTION,
+#             )
+#     all_oe_records = {}
+#     all_si_records = {}
+#     # these are for tracking original old/new records
+#     new_product_records = {}
+#     old_product_records = {}
+#     # these  are for tracking old/new versions of changed records
+#     old_changed_product_records = {}
+#     new_changed_product_records = {}
+#     # these are for added/deleted records
+#     added_product_records = {}
+#     deleted_records = {}
+#     # the counts
+#     changed_count = 0
+#     added_count = 0
+#     deleted_count = 0
+#     #
+#     # get the "old" data from:
+#     # - full -> current OpenERP data
+#     #
+#     print('gathering data')
+#     salesinq_data = []
+#     #
+#     # for a full compare we fully convert the fis records, then compare against all open
+#     # orders and closed/cancelled orders referenced by the fis records
+#     #
+#     # fis first
+#     #
+#     print('getting salesinq data')
+#     order_numbers = []
+#     for fis_rec in ifpp0.values():
+#         for rec in split_steps(convert_ifpp0_rec(fis_rec)).values():
+#             order_numbers.append(rec.order_no)
+#             all_fis_records[rec.order_no] = rec
+#     #
+#     # and then openerp
+#     #
+#     print('getting openerp records')
+#     all_oe_records = dict([
+#         (r.order_no, r)
+#         for r in fnx_pd_order.read(
+#             domain=[
+#                 '|',
+#                 ('order_no','in',order_numbers),
+#                 ('state','in',['draft','sequenced','released','running','stopped']),
+#                 ],
+#             fields=[
+#                 'id', 'order_no', 'completed_fis_qty', 'confirmed', 'item_id',
+#                 'formula_code', 'dept', 'line_id', 'schedule_date', 'finish_date',
+#                 'completed_fis_qty', 'line_id_set', 'schedule_date_set', 'state',
+#                 ],
+#             )])
+#     #
+#     # and then we compare
+#     #
+#     print('sorting changed, new, and deleted records')
+#     for order_no in set(all_oe_records.keys() + all_fis_records.keys()):
+#         old_order = all_oe_records.get(order_no)
+#         new_order = all_fis_records.get(order_no)
+#         if old_order is None:
+#             added_order_records[order_no] = new_order
+#             continue
+#         elif new_order is None:
+#             if old_order.state not in ('complete', 'cancelled'):
+#                 deleted_records[order_no] = old_order
+#             continue
+#         # save for later comparison
+#         old_changed_order_records[order_no] = old_order
+#         new_changed_order_records[order_no] = new_order
+#     assert set(old_changed_order_records.keys()) == set(new_changed_order_records.keys()),\
+#             "old and new order records mismatch"
+#     for cust_no, m2o in sorted(oe_customers.items()):
+#         salesinq_data.extend(retrieve_salesinq_info(cust_no))
+
