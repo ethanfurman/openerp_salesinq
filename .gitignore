@@ -1,5 +1,6 @@
 *.pyc
 *.sw?
+*.swp
 *~
 .*~
 *.xml
@@ -7,3 +8,4 @@
 .hg/
 .hgignore
 __openerp__.py
+_links.py
