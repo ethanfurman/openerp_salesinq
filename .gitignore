@@ -9,3 +9,4 @@
 .hgignore
 __openerp__.py
 _links.py
+*.dbf
