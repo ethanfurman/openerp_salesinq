@@ -2,7 +2,7 @@ from collections import defaultdict
 from fnx.oe import dynamic_page_stub
 from osv import osv, fields
 
-from salesinq import allow_custom_access
+from . import allow_custom_access
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     user = obj.pool.get('res.users').browse(cr, uid, uid, context=None)

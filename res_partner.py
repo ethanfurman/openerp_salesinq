@@ -2,7 +2,7 @@ from collections import defaultdict
 from fnx.oe import dynamic_page_stub
 from openerp.tools import self_ids
 from osv import osv, fields
-from salesinq import allow_custom_access
+from . import allow_custom_access, SHIP_TO_POSSIBLE
 
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
@@ -23,10 +23,11 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
     result = defaultdict(dict)
     for partner_id, parent in chain.items():
         partner = partners[partner_id]
-        shipto = partner.fis_ship_to_code
-        if partner.fis_ship_to_parent_id:
-            # this is a ship to
-            partner = partner.fis_ship_to_parent_id
+        if SHIP_TO_POSSIBLE:
+            shipto = partner.fis_ship_to_code
+            if partner.fis_ship_to_parent_id:
+                # this is a ship to
+                partner = partner.fis_ship_to_parent_id
         si_code = (partner.xml_id or '').replace("'","%27")
         valid_si_code = is_valid(si_code)
         result[partner.id]['is_salesinq_able'] = valid_si_code
@@ -40,7 +41,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         htmlContentList = ['<div id="centeredmenutop"><ul>']
         initial = link = None
         si_links = user.company_id.partner_link_ids
-        if shipto:
+        if SHIP_TO_POSSIBLE and shipto:
             # remove ship-to sub-sort links
             si_links = [l for l in si_links if 'Ship To' not in l.name]
         midpoint = len(si_links) // 2
@@ -49,7 +50,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         active_list = []
         for i, link_record in enumerate(si_links):
             longname, SalesInqURL = link_record.name, link_record.query
-            if shipto:
+            if SHIP_TO_POSSIBLE and shipto:
                 SalesInqURL += '&ShipTo_op=%s%s' % (si_code, shipto)
             if midpoint and midpoint == i:
                 htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
@@ -126,4 +127,4 @@ class res_partner(osv.Model):
             method=False,
             ),
         }
-res_partner()
+

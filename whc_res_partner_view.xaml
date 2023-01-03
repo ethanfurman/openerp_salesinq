@@ -1,0 +1,15 @@
+!!! xml1.0
+~openerp
+    ~data
+
+        // Add external_id to res.partner
+        ~record #view_partners_form_salesinq model='ir.ui.view'
+                @name: view.res.partner.form.salesinq
+                @model: res.partner
+                @inherit_id ref='base.view_partner_form'
+                @priority eval='18'
+                @arch type='xml'
+                    ~page $History position='after'
+                        ~page $SalesInq attrs="{'invisible': [('is_salesinq_able','=',False)]}"
+                            @is_salesinq_able invisible='1'
+                            @salesinq_data nolabel='1' .salesinq
