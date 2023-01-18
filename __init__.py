@@ -2,7 +2,6 @@ from antipathy import Path
 from textwrap import dedent
 from sys import exit
 here = Path('./')
-print('here: %r' % here)
 if here.exists('../wholeherb_integration'):
     integration = 'wholeherb_integration'
     choice = 'whc'
