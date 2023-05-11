@@ -1,7 +1,7 @@
 from antipathy import Path
 from textwrap import dedent
 from sys import exit
-here = Path('./')
+here = Path(__file__).dirname
 if here.exists('../wholeherb_integration'):
     integration = 'wholeherb_integration'
     choice = 'whc'
