@@ -21,6 +21,7 @@
                     ~group $Links
                         ~group colspan='4'
                             @product_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
+                            @product_cost_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
                             @partner_link_ids context="{'default_company_id': active_id}" options="{'create_edit':false}" nolabel='1' colspan='4'
                         ~group $Legend .legend
                             ~table
@@ -55,6 +56,15 @@
                 ~tree $SalesInq_Product_Links editable='bottom'
                     @company_id invisible='1'
                     @name $Product_Link
+                    @query
+
+        ~record model='ir.ui.view' #salesinq_config_product_cost_link_tree
+            @name: salesinq.config.product_cost_link
+            @model: salesinq.config.product_cost_link
+            @arch type='xml'
+                ~tree $SalesInq_Product_Cost_Links editable='bottom'
+                    @company_id invisible='1'
+                    @name $Product_Cost_Link
                     @query
 
         ~record model='ir.ui.view' #salesinq_config_partner_link_tree

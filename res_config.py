@@ -17,6 +17,13 @@ class salesinq_config_settings(osv.TransientModel):
             fields_id='company_id',
             string='Product Link',
             ),
+        'product_cost_link_ids': fields.related(
+            'company_id', 'product_cost_link_ids',
+            type='one2many',
+            relation='salesinq.config.product_cost_link',
+            fields_id='company_id',
+            string='Product Cost Link',
+            ),
         'partner_link_ids': fields.related(
             'company_id', 'partner_link_ids',
             type='one2many',
@@ -53,6 +60,7 @@ class salesinq_config_settings(osv.TransientModel):
             values = {
                 'salesinq_url': company.salesinq_url,
                 'product_link_ids': [r.id for r in company.product_link_ids],
+                'product_cost_link_ids': [r.id for r in company.product_cost_link_ids],
                 'partner_link_ids': [r.id for r in company.partner_link_ids],
                 }
         return {'value': values}

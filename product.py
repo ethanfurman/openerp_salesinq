@@ -25,7 +25,11 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         htmlContentList = ['<div id="centeredmenutop"><ul>']
         initial = link = None
         active_list = []
-        for i, link_record in enumerate(user.company_id.product_link_ids):
+        link_records = user.company_id.product_link_ids
+        if user.has_group('fis_integration.purchase_cost'):
+            link_records.extend(user.company_id.product_cost_link_ids)
+        # for i, link_record in enumerate(user.company_id.product_link_ids + user.company_id.product_cost_link_ids):
+        for i, link_record in enumerate(link_records):
             longname, SalesInqURL = link_record.name, link_record.query
             if i and i % 3 == 0:
                 htmlContentList.append('<li style="">&bullet;</li>'.join(active_list))
