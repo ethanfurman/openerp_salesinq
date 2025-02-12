@@ -50,6 +50,9 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         active_list = []
         for i, link_record in enumerate(si_links):
             longname, SalesInqURL = link_record.name, link_record.query
+            if not SalesInqURL:
+                # skip any blank records
+                continue
             if SHIP_TO_POSSIBLE and shipto:
                 SalesInqURL += '&ShipTo_op=%s%s' % (si_code, shipto)
             if midpoint and midpoint == i:
