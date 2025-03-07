@@ -31,6 +31,13 @@ class salesinq_config_settings(osv.TransientModel):
             fields_id='company_id',
             string='Partner Link',
             ),
+        'partner_cost_link_ids': fields.related(
+            'company_id', 'partner_cost_link_ids',
+            type='one2many',
+            relation='salesinq.config.partner_cost_link',
+            fields_id='company_id',
+            string='Partner Cost Link',
+            ),
         }
 
     def create(self, cr, uid, values, context=None):
@@ -62,6 +69,7 @@ class salesinq_config_settings(osv.TransientModel):
                 'product_link_ids': [r.id for r in company.product_link_ids],
                 'product_cost_link_ids': [r.id for r in company.product_cost_link_ids],
                 'partner_link_ids': [r.id for r in company.partner_link_ids],
+                'partner_cost_link_ids': [r.id for r in company.partner_cost_link_ids],
                 }
         return {'value': values}
 

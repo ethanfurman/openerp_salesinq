@@ -9,4 +9,6 @@
 "access_salesinq_config_partner_link_admin","access_salesinq_config_partner_link","model_salesinq_config_partner_link",,1,1,1,1
 "access_salesinq_config_product_cost_link_user","access_salesinq_config_product_cost_link","model_salesinq_config_product_cost_link",,1,0,0,0
 "access_salesinq_config_product_cost_link_admin","access_salesinq_config_product_cost_link","model_salesinq_config_product_cost_link",,1,1,1,1
+"access_salesinq_config_partner_cost_link_user","access_salesinq_config_partner_cost_link","model_salesinq_config_partner_cost_link",,1,0,0,0
+"access_salesinq_config_partner_cost_link_admin","access_salesinq_config_partner_cost_link","model_salesinq_config_partner_cost_link",,1,1,1,1
 

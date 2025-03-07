@@ -28,6 +28,18 @@ class res_users(osv.Model):
                 for r in res
                 ]
 
+    def _salesinq_get_partner_cost_view_links(self, cr, uid, context=None):
+        user = self.pool.get('res.users').browse(cr, SUPERUSER_ID, uid, context=context)
+        if not user.has_group('fis_integration.purchase_cost'):
+            return []
+        settings = self.pool.get('salesinq.config.partner_cost_link')
+        ids = settings.search(cr, SUPERUSER_ID, [('company_id','=',user.company_id.id)], context=context)
+        res = settings.read(cr, SUPERUSER_ID, ids, ['id', 'name', ], context=context)
+        return [
+                ('%02d-%s' % (r['id'], compress(r['name'])), r['name'])
+                for r in res
+                ]
+
     def _salesinq_get_partner_view_links(self, cr, uid, context=None):
         user = self.pool.get('res.users').browse(cr, SUPERUSER_ID, uid, context=context)
         settings = self.pool.get('salesinq.config.partner_link')
@@ -67,6 +79,10 @@ class res_users(osv.Model):
             'salesinq_partner_view': fields.selection(
                 string='Default Partner View',
                 selection=_salesinq_get_partner_view_links,
+                ),
+            'salesinq_partner_cost_view': fields.selection(
+                string='Default Partner Cost View',
+                selection=_salesinq_get_partner_cost_view_links,
                 ),
             'salesinq_privileges': fields.function(
                 _has_salesinq,

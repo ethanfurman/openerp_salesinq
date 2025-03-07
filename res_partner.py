@@ -48,6 +48,8 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         if midpoint < 3:
             midpoint = 0
         active_list = []
+        if user.has_group('fis_integration.partner_cost'):
+            si_links.extend(user.company_id.partner_cost_link_ids)
         for i, link_record in enumerate(si_links):
             longname, SalesInqURL = link_record.name, link_record.query
             if not SalesInqURL:

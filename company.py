@@ -5,8 +5,9 @@ class res_company(osv.Model):
     _columns = {
         'salesinq_url': fields.char('SalesInq Server', size=128),
         'product_link_ids': fields.one2many('salesinq.config.product_link', 'company_id', 'Product Link'),
-        'product_cost_link_ids': fields.one2many('salesinq.config.product_cost_link', 'company_id', 'Product Link'),
+        'product_cost_link_ids': fields.one2many('salesinq.config.product_cost_link', 'company_id', 'Product Cost Link'),
         'partner_link_ids': fields.one2many('salesinq.config.partner_link', 'company_id', 'Partner Link'),
+        'partner_cost_link_ids': fields.one2many('salesinq.config.partner_cost_link', 'company_id', 'Partner Cost Link'),
         }
 
 
@@ -47,6 +48,16 @@ class salesinq_product_cost_link(osv.Model):
 
 class salesinq_partner_link(osv.Model):
     _name = 'salesinq.config.partner_link'
+    _columns = {
+        'company_id': fields.many2one('res.company', 'Company'),
+        'name': fields.char('Link Text', size=64),
+        'query': fields.char('Link Query', size=255),
+        }
+    _constraints = [(unique, 'name or query already in use', ['name', 'query'])]
+
+
+class salesinq_partner_cost_link(osv.Model):
+    _name = 'salesinq.config.partner_cost_link'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company'),
         'name': fields.char('Link Text', size=64),
