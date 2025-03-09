@@ -3,6 +3,9 @@ from fnx.oe import dynamic_page_stub
 from openerp.tools import self_ids
 from osv import osv, fields
 from . import allow_custom_access, SHIP_TO_POSSIBLE
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def salesinq(obj, cr, uid, ids, fields, arg, context=None):
@@ -48,7 +51,7 @@ def salesinq(obj, cr, uid, ids, fields, arg, context=None):
         if midpoint < 3:
             midpoint = 0
         active_list = []
-        if user.has_group('fis_integration.partner_cost'):
+        if user.has_group('fis_integration.purchase_cost'):
             si_links.extend(user.company_id.partner_cost_link_ids)
         for i, link_record in enumerate(si_links):
             longname, SalesInqURL = link_record.name, link_record.query
